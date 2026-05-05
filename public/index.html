@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediSparta - Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- TOP NAVIGATION (Simplified for Login) -->
+    <header id="top-nav">
+        <div class="nav-left">
+            <h1 class="logo" style="margin-left: 20px;">MediSparta Clinic System</h1>
+        </div>
+    </header>
+
+    <main id="main-content" style="display: flex; justify-content: center; align-items: center; height: 80vh;">
+        
+        <!-- LOGIN SECTION -->
+        <div class="login-card fade-in">
+            <h2 style="color: var(--bsu-red); text-align: center;">Welcome Spartan</h2>
+            <p style="text-align: center; color: #666;">Sign in to access the clinic system</p>
+            
+            <form id="loginForm">
+                <label for="role">Select Role:</label>
+                <select id="role" required>
+                    <option value="student">Student</option>
+                    <option value="staff">Clinic Staff (Nurse/Doctor)</option>
+                    <option value="admin">System Admin</option>
+                </select>
+
+                <label for="username">Username / ID:</label>
+                <input type="text" id="username" placeholder="Enter your ID" required>
+
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter password" required>
+
+                <button type="submit" class="btn-primary">Login</button>
+            </form>
+        </div>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

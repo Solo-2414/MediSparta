@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - MediSparta</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- THE NAVBAR AND SIDEBAR ARE INJECTED HERE BY JAVASCRIPT -->
+
+    <main id="main-content">
+        <h2 class="fade-in">System Administrator Dashboard</h2>
+        
+        <div class="dashboard-cards fade-in">
+            <div class="card">
+                <h3>Campus Management</h3>
+                <p>Add, edit, or remove extension campuses.</p>
+                <button class="btn-primary">Manage Campuses</button>
+            </div>
+            <div class="card">
+                <h3>System Logs</h3>
+                <p>Monitor database activity and user accounts.</p>
+                <button class="btn-primary">View Logs</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 1. The shared layout script (Adds the sidebar/navbar) -->
+    <script src="dashboard-layout.js"></script>
+    
+    <!-- 2. The main script (Handles forms, buttons, logic) -->
+    <script src="script.js"></script>
+</body>
+</html>

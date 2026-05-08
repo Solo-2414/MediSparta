@@ -1,0 +1,65 @@
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - MediSparta</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- THE NAVBAR AND SIDEBAR ARE INJECTED HERE BY JAVASCRIPT -->
+
+    <main id="main-content">
+        <h2 class="fade-in">Student Dashboard</h2>
+        
+            <div class="card">
+                <h3>Clinical Records</h3>
+                <p>View your clinical information.</p>
+                <button class="btn-primary" id="viewRecordsBtn">View Records</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- MEDICAL RECORDS MODAL - Viewing Records -->
+    <div id="medicalRecordsModal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Clinic Records</h2>
+                <button class="modal-close" id="closeRecordsBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="records-container">
+                    <div class="record-item">
+                        <h4>Consultation - May 5, 2026</h4>
+                        <p><strong>Doctor:</strong> Dr. Smith</p>
+                        <p><strong>Diagnosis:</strong> Common Cold</p>
+                        <p><strong>Notes:</strong> Rest and hydration recommended. Take over-the-counter cold medicine as needed.</p>
+                    </div>
+                    <div class="record-item">
+                        <h4>Physical Exam - April 20, 2026</h4>
+                        <p><strong>Doctor:</strong> Dr. Johnson</p>
+                        <p><strong>Height:</strong> 5'10"</p>
+                        <p><strong>Weight:</strong> 170 lbs</p>
+                        <p><strong>Blood Pressure:</strong> 120/80</p>
+                        <p><strong>Notes:</strong> All vitals normal. Health in good condition.</p>
+                    </div>
+                    <div class="record-item">
+                        <h4>Vaccination - March 15, 2026</h4>
+                        <p><strong>Type:</strong> Flu Shot</p>
+                        <p><strong>Doctor:</strong> Dr. Williams</p>
+                        <p><strong>Notes:</strong> Vaccination completed successfully.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. The shared layout script (Adds the sidebar/navbar) -->
+    <script src="dashboard-layout.js"></script>
+    
+    <!-- 2. The main script (Handles forms, buttons, logic) -->
+    <script src="script.js"></script>
+</body>
+</html>

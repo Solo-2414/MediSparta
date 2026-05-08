@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - MediSparta</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- THE NAVBAR AND SIDEBAR ARE INJECTED HERE BY JAVASCRIPT -->
+
+    <main id="main-content">
+        <h2 class="fade-in">Admin Dashboard</h2>
+        
+        <div class="dashboard-cards fade-in">
+            <div class="card">
+                <h3>System Dashboard</h3>
+                <p>View system statistics and user analytics.</p>
+                <button class="btn-primary" id="dashboardBtn">View Dashboard</button>
+            </div>
+            <div class="card">
+                <h3>Campus Management</h3>
+                <p>Add, edit, or remove extension campuses.</p>
+                <button class="btn-primary">Manage Campuses</button>
+            </div>
+            <div class="card">
+                <h3>System Logs</h3>
+                <p>Monitor database activity and user accounts.</p>
+                <button class="btn-primary">View Logs</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- SYSTEMDASHBOARD MODAL -->
+    <div id="dashboardModal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">System Dashboard</h2>
+                <button class="modal-close" id="closeDashboardBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="dashboard-stats-container">
+                    <div class="stat-card">
+                        <h3>Total Users Created</h3>
+                        <p class="stat-number" id="totalUsers">0</p>
+                        <p class="stat-label">User Accounts</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Patients Logged In</h3>
+                        <p class="stat-number" id="patientsLoggedIn">0</p>
+                        <p class="stat-label">Active Patients</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Patients Registered</h3>
+                        <p class="stat-number" id="patientsRegistered">0</p>
+                        <p class="stat-label">Registered Patients</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Staff</h3>
+                        <p class="stat-number" id="totalStaff">0</p>
+                        <p class="stat-label">Staff Members</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. The shared layout script (Adds the sidebar/navbar) -->
+    <script src="dashboard-layout.js"></script>
+    
+    <!-- 2. The main script (Handles forms, buttons, logic) -->
+    <script src="script.js"></script>
+</body>
+</html>

@@ -10,12 +10,17 @@ app.use(express.json());
 // --- SERVE FRONTEND FILES (Deployment Ready) ---
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- DATABASE CONNECTION ---
+// --- UPDATED DATABASE CONNECTION FOR DEPLOYMENT ---
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root', 
-    password: '241405', 
-    database: 'MediSparta'
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root', 
+    password: process.env.DB_PASSWORD || '241405', 
+    database: process.env.DB_NAME || 'MediSparta',
+    port: process.env.DB_PORT || 3306,
+    // NEW: This allows Aiven to accept the connection without a physical certificate file
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 db.connect((err) => {

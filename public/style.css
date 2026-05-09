@@ -1,37 +1,44 @@
-/* --- VARIABLES (BatStateU Theme) --- */
+/* ==========================================
+   VARIABLES (Modern BatStateU Theme)
+   ========================================== */
 :root {
     --bsu-red: #ed1b2f;
-    --bsu-dark-red: #b81524;
-    --bg-color: #f4f5f7;
-    --text-color: #333;
-    --white: #ffffff;
+    --bsu-dark-red: #c41525;
+    --bg-color: #f4f7f9; /* Cooler, cleaner gray */
+    --card-bg: #ffffff;
+    --text-main: #2c3e50;
+    --text-muted: #7f8c8d;
     --sidebar-width: 250px;
 }
 
-/* --- GLOBAL RESET --- */
+/* ==========================================
+   GLOBAL RESET
+   ========================================== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
     background-color: var(--bg-color);
-    color: var(--text-color);
+    color: var(--text-main);
     overflow-x: hidden; /* Prevents scrolling when sidebar is hidden */
 }
 
-/* --- TOP NAVIGATION --- */
+/* ==========================================
+   TOP NAVIGATION
+   ========================================== */
 #top-nav {
     background-color: var(--bsu-red);
-    color: var(--white);
+    color: var(--card-bg);
     height: 60px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     position: relative;
     z-index: 1000;
 }
@@ -45,7 +52,7 @@ body {
 .hamburger {
     background: none;
     border: none;
-    color: var(--white);
+    color: var(--card-bg);
     font-size: 24px;
     cursor: pointer;
     transition: transform 0.2s;
@@ -65,37 +72,44 @@ body {
     background: transparent;
     color: white;
     border: 1px solid white;
-    padding: 5px 15px;
-    border-radius: 4px;
+    padding: 6px 16px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background 0.3s;
+    font-weight: 600;
+    transition: background 0.3s, transform 0.1s;
 }
 
 #logout-btn:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* --- SLIDING SIDEBAR --- */
+#logout-btn:active {
+    transform: scale(0.95);
+}
+
+/* ==========================================
+   SLIDING SIDEBAR
+   ========================================== */
 .sidebar {
     position: fixed;
-    top: 60px; /* Below navbar */
-    left: calc(-1 * var(--sidebar-width)); /* Hidden off-screen by default */
+    top: 60px; 
+    left: calc(-1 * var(--sidebar-width)); 
     width: var(--sidebar-width);
     height: calc(100vh - 60px);
-    background-color: var(--white);
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-    transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smooth slide animation */
+    background-color: var(--card-bg);
+    box-shadow: 2px 0 15px rgba(0,0,0,0.05);
+    transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     z-index: 999;
 }
 
 .sidebar.active {
-    left: 0; /* Slides in */
+    left: 0;
 }
 
 .sidebar-header {
     padding: 20px;
-    background-color: #eee;
-    border-bottom: 1px solid #ddd;
+    background-color: #fafbfc;
+    border-bottom: 1px solid #eee;
 }
 
 .sidebar-links {
@@ -104,97 +118,309 @@ body {
 
 .sidebar-links li a {
     display: block;
-    padding: 15px 20px;
-    color: var(--text-color);
+    padding: 16px 20px;
+    color: var(--text-main);
     text-decoration: none;
-    border-bottom: 1px solid #f0f0f0;
-    transition: background 0.2s, padding-left 0.2s;
+    border-bottom: 1px solid #f9f9f9;
+    font-weight: 500;
+    transition: background 0.2s, padding-left 0.2s, color 0.2s;
 }
 
 .sidebar-links li a:hover {
-    background-color: #ffe6e8;
+    background-color: #fff3f4;
     color: var(--bsu-red);
-    padding-left: 25px; /* Tiny hover animation */
+    padding-left: 26px; /* Smooth indent hover */
 }
 
-/* --- MAIN CONTENT & VIEWS --- */
+/* ==========================================
+   MAIN CONTENT AREA
+   ========================================== */
 #main-content {
     padding: 40px 20px;
-    max-width: 1000px;
+    max-width: 1050px;
     margin: 0 auto;
     transition: margin-left 0.4s;
 }
 
-.view-section {
-    display: none; /* Hidden by default */
+/* ==========================================
+   MODERN DASHBOARD CARDS
+   ========================================== */
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 20px;
 }
 
-.view-section.active {
-    display: block; /* Shows the active section */
+.card {
+    background: var(--card-bg);
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); 
+    border: 1px solid rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Fade-in Animation for page changes */
-.fade-in {
-    animation: fadeInAnimation 0.5s ease forwards;
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 25px rgba(237, 27, 47, 0.12);
 }
 
-@keyframes fadeInAnimation {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+.card h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: var(--bsu-red);
+    font-size: 1.25rem;
+    font-weight: 700;
 }
 
-/* --- COMPONENTS (Login Card & Dashboard Cards) --- */
+.card p {
+    color: var(--text-muted);
+    line-height: 1.5;
+    flex-grow: 1; 
+    margin-bottom: 15px;
+}
+
 .login-card {
-    background: var(--white);
+    background: var(--card-bg);
     padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border-radius: 16px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.03);
     max-width: 400px;
     margin: 0 auto;
-    border-top: 5px solid var(--bsu-red);
 }
 
-form { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
-label { font-weight: bold; font-size: 0.9rem; }
-input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
-input:focus, select:focus { outline: none; border-color: var(--bsu-red); }
-
+/* ==========================================
+   MODERN BUTTONS
+   ========================================== */
 .btn-primary {
     background-color: var(--bsu-red);
-    color: var(--white);
+    color: white;
     border: none;
-    padding: 12px;
-    border-radius: 4px;
+    padding: 12px 20px;
+    border-radius: 8px;
     font-size: 1rem;
-    font-weight: bold;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     cursor: pointer;
-    transition: background 0.3s;
-    margin-top: 10px;
+    transition: background-color 0.2s, transform 0.1s;
+    width: 100%;
 }
 
 .btn-primary:hover {
     background-color: var(--bsu-dark-red);
 }
 
-.dashboard-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
+.btn-primary:active {
+    transform: scale(0.97);
 }
 
-.card {
-    background: var(--white);
-    padding: 20px;
+/* ==========================================
+   MODERN INPUTS & FORMS
+   ========================================== */
+form { 
+    display: flex; 
+    flex-direction: column; 
+}
+
+label { 
+    font-weight: 600; 
+    font-size: 0.9rem; 
+    margin-bottom: 6px;
+    color: var(--text-main);
+}
+
+input[type="text"], input[type="number"], input[type="password"], input[type="date"], select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #dfe6e9;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    border-left: 4px solid var(--bsu-red);
-    transition: transform 0.2s;
+    background-color: #fafbfc;
+    transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    font-size: 1rem;
+    color: var(--text-main);
 }
 
-.card:hover {
-    transform: translateY(-5px); /* Hover float animation */
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--bsu-red);
+    box-shadow: 0 0 0 4px rgba(237, 27, 47, 0.1); 
+    background-color: var(--card-bg);
 }
 
-/* Utility Class */
+/* ==========================================
+   UTILITIES & ANIMATIONS
+   ========================================== */
 .hidden { display: none !important; }
+
+.fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================
+   DARK MODE THEME OVERRIDES
+   ========================================== */
+body.dark-theme {
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --text-main: #f0f0f0;
+    --text-muted: #a0a0a0;
+}
+
+body.dark-theme .sidebar-header {
+    background-color: #1a1a1a;
+    border-bottom: 1px solid #333;
+}
+
+body.dark-theme .sidebar-links li a {
+    border-bottom: 1px solid #2d2d2d;
+}
+
+body.dark-theme .sidebar-links li a:hover {
+    background-color: #2d2d2d;
+    color: var(--bsu-red);
+}
+
+body.dark-theme input[type="text"], 
+body.dark-theme input[type="number"], 
+body.dark-theme input[type="password"], 
+body.dark-theme input[type="date"], 
+body.dark-theme select {
+    background-color: #2d2d2d;
+    color: #ffffff;
+    border-color: #444;
+}
+
+/* Fix table header backgrounds in dark mode */
+body.dark-theme tr[style*="background-color: #f4f4f4;"] {
+    background-color: #2d2d2d !important;
+}
+
+body.dark-theme td, body.dark-theme th {
+    border-color: #444 !important;
+}
+
+/* ==========================================
+   MODAL OVERLAYS & POPUPS
+   ========================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px); /* Modern frosted glass effect */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 800px;
+    /* FIX: Change auto to visible so the dropdown can float outside the modal */
+    overflow-y: visible; 
+    /* NEW: Give the modal a solid base height so it feels spacious */
+    min-height: 400px;
+    position: relative;
+    transform: translateY(-20px) scale(0.95);
+    transition: transform 0.3s ease;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0) scale(1);
+}
+
+.close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    line-height: 1;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.close-btn:hover { 
+    color: var(--bsu-red); 
+    transform: scale(1.1);
+}
+
+/* ==========================================
+   AUTOCOMPLETE DROPDOWN (Search Predictions)
+   ========================================== */
+.autocomplete-container {
+    position: relative;
+    flex-grow: 1;
+}
+
+.autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 8px;
+    /* FIX: Deeper shadow and taller max-height */
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15); 
+    max-height: 400px; 
+    overflow-y: auto;
+    display: none; 
+    margin-top: 5px;
+    z-index: 9999; /* Guarantee it floats over everything */
+}
+
+body.dark-theme .autocomplete-dropdown {
+    border-color: #444;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+}
+
+.autocomplete-item {
+    /* FIX: Much larger padding for comfortable reading and clicking */
+    padding: 16px 20px; 
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-bottom: 1px solid #eee;
+    color: var(--text-main);
+    transition: background 0.2s;
+    font-size: 1.05rem; /* Slightly larger text */
+}
+
+body.dark-theme .autocomplete-item {
+    border-bottom-color: #333;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item:hover {
+    background-color: var(--bg-color);
+}

@@ -3,34 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - MediSparta</title>
+    <title>Student Portal - MediSparta</title>
     <link rel="stylesheet" href="style.css">
-</head>
+    <script src="auth-guard.js"></script> </head>
 <body>
 
-    <!-- THE NAVBAR AND SIDEBAR ARE INJECTED HERE BY JAVASCRIPT -->
-
     <main id="main-content">
-        <h2 class="fade-in">System Administrator Dashboard</h2>
-        
-        <div class="dashboard-cards fade-in">
-            <div class="card">
-                <h3>Campus Management</h3>
-                <p>Add, edit, or remove extension campuses.</p>
-                <button class="btn-primary">Manage Campuses</button>
+        <h2 class="fade-in" id="studentWelcome">My Health Portal</h2>
+        <p class="fade-in" style="color: #666; margin-bottom: 20px;">View your personal clinic visit history and dispensed medications.</p>
+
+        <div class="login-card fade-in" style="max-width: 800px; margin: 0; padding: 20px;">
+            
+            <div style="border-bottom: 2px solid #ccc; padding-bottom: 20px; margin-bottom: 20px;">
+                <h3 style="color: var(--bsu-red); margin-bottom: 10px;">Personal Information</h3>
+                <p><strong>Name:</strong> <span id="myProfileName">Loading...</span></p>
+                <p><strong>Student ID:</strong> <span id="myProfileId">Loading...</span></p>
+                <p><strong>Date of Birth:</strong> <span id="myProfileDob">Loading...</span></p>
             </div>
-            <div class="card">
-                <h3>System Logs</h3>
-                <p>Monitor database activity and user accounts.</p>
-                <button class="btn-primary">View Logs</button>
+
+            <div>
+                <h3 style="color: var(--bsu-red); margin-bottom: 10px;">My Visit History</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left;">
+                    <thead>
+                        <tr style="background-color: #f4f4f4; border-bottom: 2px solid #ccc;">
+                            <th style="padding: 10px;">Date & Time</th>
+                            <th style="padding: 10px;">Symptoms/Reason</th>
+                            <th style="padding: 10px;">Medication Given</th>
+                        </tr>
+                    </thead>
+                    <tbody id="myVisitHistoryBody">
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 10px; color: #666;">Loading your records...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
+
         </div>
     </main>
 
-    <!-- 1. The shared layout script (Adds the sidebar/navbar) -->
     <script src="dashboard-layout.js"></script>
-    
-    <!-- 2. The main script (Handles forms, buttons, logic) -->
     <script src="script.js"></script>
 </body>
 </html>

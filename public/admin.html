@@ -4,33 +4,132 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - MediSparta</title>
+    
     <link rel="stylesheet" href="style.css">
+    
+    <script src="auth-guard.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-    <!-- THE NAVBAR AND SIDEBAR ARE INJECTED HERE BY JAVASCRIPT -->
-
     <main id="main-content">
-        <h2 class="fade-in">System Administrator Dashboard</h2>
+        <h2 class="fade-in">System Administrator</h2>
+        <p class="fade-in" style="color: #666; margin-bottom: 20px;">Manage university accounts, generate login IDs, and monitor system adoption.</p>
         
         <div class="dashboard-cards fade-in">
-            <div class="card">
-                <h3>Campus Management</h3>
-                <p>Add, edit, or remove extension campuses.</p>
-                <button class="btn-primary">Manage Campuses</button>
+            
+            <div class="card" style="grid-column: 1 / -1; margin-bottom: 10px;">
+                <h3 style="margin-bottom: 15px;">System Adoption Overview</h3>
+                <div style="position: relative; height: 250px; width: 100%;">
+                    <canvas id="adminChart"></canvas>
+                </div>
             </div>
+
             <div class="card">
-                <h3>System Logs</h3>
-                <p>Monitor database activity and user accounts.</p>
-                <button class="btn-primary">View Logs</button>
+                <h3>Register Student</h3>
+                <p>Enroll a new student to generate their official ID.</p>
+                <button class="btn-primary" onclick="document.getElementById('studentRegForm').style.display='block'; document.getElementById('staffRegForm').style.display='none'; document.getElementById('userDirectoryView').style.display='none';">New Student</button>
+            </div>
+
+            <div class="card">
+                <h3>Register Clinic Staff</h3>
+                <p>Add a new nurse or doctor to the system.</p>
+                <button class="btn-primary" onclick="document.getElementById('staffRegForm').style.display='block'; document.getElementById('studentRegForm').style.display='none'; document.getElementById('userDirectoryView').style.display='none';">New Staff</button>
+            </div>
+
+            <div class="card">
+                <h3>User Directory</h3>
+                <p>View a master list of all registered accounts.</p>
+                <button class="btn-primary" onclick="loadUserDirectory()">View Directory</button>
             </div>
         </div>
+
+        <div id="studentRegForm" class="login-card fade-in" style="display: none; max-width: 600px; margin: 20px 0 0 0;">
+            <h3 style="color: var(--bsu-red); border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 15px;">Student Enrollment Form</h3>
+            <form id="form-add-student">
+                <label>First Name:</label>
+                <input type="text" id="stu_first" required>
+                
+                <label>Last Name:</label>
+                <input type="text" id="stu_last" required>
+                
+                <label>Date of Birth:</label>
+                <input type="date" id="stu_dob" required style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                
+                <label>Campus:</label>
+                <select id="stu_campus" required>
+                    <option value="5">Lipa</option>
+                    <option value="1">Pablo Borbon</option>
+                    <option value="2">Alangilan</option>
+                </select>
+
+                <label>Assign Password:</label>
+                <input type="text" id="stu_pass" value="student123" required>
+
+                <button type="submit" class="btn-primary" style="margin-top: 10px;">Register Student & Generate ID</button>
+            </form>
+        </div>
+
+        <div id="staffRegForm" class="login-card fade-in" style="display: none; max-width: 600px; margin: 20px 0 0 0;">
+            <h3 style="color: var(--bsu-red); border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 15px;">Staff Registration Form</h3>
+            <form id="form-add-staff">
+                <label>First Name:</label>
+                <input type="text" id="stf_first" required>
+                
+                <label>Last Name:</label>
+                <input type="text" id="stf_last" required>
+                
+                <label>Job Title:</label>
+                <select id="stf_title" required>
+                    <option value="Nurse">Nurse</option>
+                    <option value="Head Nurse">Head Nurse</option>
+                    <option value="Clinic Physician">Clinic Physician</option>
+                </select>
+                
+                <label>Assigned Campus:</label>
+                <select id="stf_campus" required>
+                    <option value="5">Lipa</option>
+                    <option value="1">Pablo Borbon</option>
+                    <option value="2">Alangilan</option>
+                </select>
+
+                <label>Assign Password:</label>
+                <input type="text" id="stf_pass" value="staff123" required>
+
+                <button type="submit" class="btn-primary" style="margin-top: 10px;">Register Staff & Generate ID</button>
+            </form>
+        </div>
+
+        <div id="userDirectoryView" class="login-card fade-in" style="display: none; max-width: 900px; margin: 20px 0 0 0; padding: 20px;">
+            <h3 style="color: var(--bsu-red); border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 15px;">Master User Directory</h3>
+            
+            <h4 style="margin-top: 20px; color: #333;">Registered Clinic Staff</h4>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: left;">
+                <tr style="background-color: #f4f4f4; border-bottom: 2px solid #ccc;">
+                    <th style="padding: 10px;">Staff ID</th>
+                    <th style="padding: 10px;">Name</th>
+                    <th style="padding: 10px;">Job Title</th>
+                    <th style="padding: 10px;">Campus ID</th>
+                </tr>
+                <tbody id="adminStaffTable"><tr><td colspan="4">Loading...</td></tr></tbody>
+            </table>
+
+            <h4 style="margin-top: 20px; color: #333;">Enrolled Students</h4>
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <tr style="background-color: #f4f4f4; border-bottom: 2px solid #ccc;">
+                    <th style="padding: 10px;">Student ID</th>
+                    <th style="padding: 10px;">Name</th>
+                    <th style="padding: 10px;">Date of Birth</th>
+                    <th style="padding: 10px;">Campus ID</th>
+                </tr>
+                <tbody id="adminStudentTable"><tr><td colspan="4">Loading...</td></tr></tbody>
+            </table>
+        </div>
+
     </main>
 
-    <!-- 1. The shared layout script (Adds the sidebar/navbar) -->
     <script src="dashboard-layout.js"></script>
-    
-    <!-- 2. The main script (Handles forms, buttons, logic) -->
     <script src="script.js"></script>
 </body>
 </html>

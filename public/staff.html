@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard - MediSparta</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth-guard.js"></script>
+</head>
+<body>
+
+    <main id="main-content">
+        <h2 class="fade-in">Clinic Staff Portal</h2>
+        <p class="fade-in" style="color: var(--text-muted); margin-bottom: 20px;">Manage patient walk-ins, medical records, and clinic stock.</p>
+        
+        <div class="dashboard-cards fade-in">
+            <div class="card">
+                <h3>Log New Visit</h3>
+                <p>Record a student walk-in, document symptoms, and dispense items.</p>
+                <button class="btn-primary" onclick="openModal('visitModal')">Start New Visit</button>
+            </div>
+
+            <div class="card">
+                <h3>Pharmacy & Inventory</h3>
+                <p>Check stock levels for medicines and medical supplies.</p>
+                <button class="btn-primary" onclick="openModal('inventoryModal')">Manage Stock</button>
+            </div>  
+
+            <div class="card">
+                <h3>Student Records</h3>
+                <p>Search for a student by ID to view their past clinic history.</p>
+                <button class="btn-primary" onclick="openModal('recordsModal')">Search Patient</button>
+            </div>
+        </div>
+
+        <h3 class="fade-in" style="margin-top: 40px; margin-bottom: 15px; color: var(--text-main);">Today's Recent Walk-Ins</h3>
+        <div class="card fade-in" style="padding: 0; overflow: hidden; border-radius: 12px;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="background-color: var(--bg-color); border-bottom: 2px solid #eee;">
+                        <th style="padding: 15px 20px; color: var(--text-muted); font-size: 0.9rem;">Time</th>
+                        <th style="padding: 15px 20px; color: var(--text-muted); font-size: 0.9rem;">Patient Name</th>
+                        <th style="padding: 15px 20px; color: var(--text-muted); font-size: 0.9rem;">Primary Symptom</th>
+                    </tr>
+                </thead>
+                <tbody id="recentActivityTable">
+                    <tr><td colspan="3" style="padding: 20px; text-align: center; color: var(--text-muted);">Loading recent activity...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="visitModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('visitModal')">&times;</button>
+            <h2 style="color: var(--bsu-red); margin-bottom: 5px;">Log a Clinic Visit</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Record student symptoms and dispense medication.</p>
+            
+            <form id="visitForm">
+                <h3 style="margin-bottom: 10px; color: var(--bsu-red); border-bottom: 1px solid #ccc; padding-bottom: 5px;">Patient Details</h3>
+                
+                <label for="student_id">Student ID / Name:</label>
+                <div class="autocomplete-container" style="margin-bottom: 15px;">
+                    <input type="text" id="student_id" placeholder="Search by ID or Name..." autocomplete="off" required style="width: 100%; margin: 0; padding: 12px; border: 1px solid #ccc; border-radius: 8px; background: var(--card-bg); color: var(--text-main);">
+                    
+                    <div id="visitSearchDropdown" class="autocomplete-dropdown"></div>
+                </div>
+
+                <h3 style="margin-top: 20px; margin-bottom: 10px; color: var(--bsu-red); border-bottom: 1px solid #ccc; padding-bottom: 5px;">Visit Information</h3>
+                <label for="symptoms">Symptoms / Reason for Visit:</label>
+                <textarea id="symptoms" rows="3" placeholder="e.g., Severe headache and fever" style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; background: var(--card-bg); color: var(--text-main);" required></textarea>
+
+                <h3 style="margin-top: 20px; margin-bottom: 10px; color: var(--bsu-red); border-bottom: 1px solid #ccc; padding-bottom: 5px;">Dispense Medication</h3>
+                <label for="inventory_id">Select Item:</label>
+                <select id="inventory_id">
+
+                </select>
+
+                <label for="quantity_dispensed">Quantity Dispensed:</label>
+                <input type="number" id="quantity_dispensed" value="0" min="0">
+
+                <button type="submit" class="btn-primary" style="margin-top: 20px;">Save Visit Record</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="inventoryModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 900px;">
+            <button class="close-btn" onclick="closeModal('inventoryModal')">&times;</button>
+            <h2 style="color: var(--bsu-red); margin-bottom: 5px;">Pharmacy & Clinic Stock</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Monitor, update, and add live inventory levels.</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                <form id="restockForm" style="display: flex; flex-direction: column; gap: 10px; background: var(--bg-color); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <h4 style="margin: 0; color: var(--text-main);">Update Existing Stock</h4>
+                    <select id="restock_item" required style="margin: 0; width: 100%;">
+                        </select>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="restock_qty" placeholder="New Total Qty" required min="0" style="margin: 0; flex-grow: 1;">
+                        <button type="submit" class="btn-primary" style="margin: 0; width: auto; padding: 12px 20px;">Update</button>
+                    </div>
+                </form>
+
+                <form id="addItemForm" style="display: flex; flex-direction: column; gap: 10px; background: var(--bg-color); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <h4 style="margin: 0; color: var(--text-main);">Add New Medicine</h4>
+                    <input type="text" id="new_item_name" placeholder="e.g., Amoxicillin 500mg" required style="margin: 0; width: 100%;">
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="new_item_qty" placeholder="Starting Qty" required min="0" style="margin: 0; flex-grow: 1;">
+                        <button type="submit" class="btn-primary" style="margin: 0; width: auto; padding: 12px 20px;">Add Item</button>
+                    </div>
+                </form>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 16px;">
+                <thead>
+                    <tr style="background-color: var(--bsu-red); color: white;">
+                        <th style="padding: 12px; border-radius: 8px 0 0 0;">Item ID</th>
+                        <th style="padding: 12px;">Item Name</th>
+                        <th style="padding: 12px;">Current Stock</th>
+                        <th style="padding: 12px; border-radius: 0 8px 0 0;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryTableBody">
+                    <tr><td colspan="4" style="text-align: center; padding: 20px;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="recordsModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('recordsModal')">&times;</button>
+            <h2 style="color: var(--bsu-red); margin-bottom: 5px;">Student Medical Records</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Search for a student to view their clinic history.</p>
+
+            <form id="searchRecordForm" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <div class="autocomplete-container">
+                    <input type="text" id="search_student_id" placeholder="Search by ID or Name..." autocomplete="off" required style="width: 100%; margin: 0;">
+                    
+                    <div id="searchDropdown" class="autocomplete-dropdown"></div>
+                </div>
+                <button type="submit" class="btn-primary" style="width: auto; margin: 0;">Search</button>
+            </form>
+
+            <div id="errorMessage" style="display: none; color: red; text-align: center; font-weight: bold; padding: 10px;"></div>
+
+            <div id="studentProfile" style="display: none; border-bottom: 2px solid #ccc; padding-bottom: 20px; margin-bottom: 20px;">
+                <h3 style="color: var(--bsu-red); margin-bottom: 10px;">Patient Profile</h3>
+                <p><strong>Name:</strong> <span id="profileName"></span></p>
+                <p><strong>Student ID:</strong> <span id="profileId"></span></p>
+                <p><strong>Date of Birth:</strong> <span id="profileDob"></span></p>
+            </div>
+
+            <div id="visitHistory" style="display: none;">
+                <h3 style="color: var(--bsu-red); margin-bottom: 10px;">Visit History</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left;">
+                    <thead>
+                        <tr style="background-color: var(--bg-color); border-bottom: 2px solid #ccc;">
+                            <th style="padding: 10px;">Date & Time</th>
+                            <th style="padding: 10px;">Symptoms</th>
+                            <th style="padding: 10px;">Medication</th>
+                        </tr>
+                    </thead>
+                    <tbody id="visitHistoryBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard-layout.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

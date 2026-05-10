@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Inventory - MediSparta</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth-guard.js"></script> </head>
+<body>
+
+    <main id="main-content">
+        <h2 class="fade-in">Pharmacy & Clinic Stock</h2>
+        <p class="fade-in" style="color: #666; margin-bottom: 20px;">Monitor live inventory levels for medicines and supplies.</p>
+
+        <div class="login-card fade-in" style="max-width: 900px; margin: 0; padding: 20px;">
+            
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 16px;">
+                <thead>
+                    <tr style="background-color: var(--bsu-red); color: white;">
+                        <th style="padding: 12px; border-radius: 4px 0 0 0;">Item ID</th>
+                        <th style="padding: 12px;">Item Name</th>
+                        <th style="padding: 12px;">Current Stock (Qty)</th>
+                        <th style="padding: 12px; border-radius: 0 4px 0 0;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryTableBody">
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px; color: #666;">
+                            <em>Loading inventory data from server...</em>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </main>
+
+    <script src="dashboard-layout.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

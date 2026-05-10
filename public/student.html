@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal - MediSparta</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth-guard.js"></script> </head>
+<body>
+
+    <main id="main-content">
+        <h2 class="fade-in" id="studentWelcome">My Health Portal</h2>
+        <p class="fade-in" style="color: #666; margin-bottom: 20px;">View your personal clinic visit history and dispensed medications.</p>
+
+        <div class="login-card fade-in" style="max-width: 800px; margin: 0; padding: 20px;">
+            
+            <div style="border-bottom: 2px solid #ccc; padding-bottom: 20px; margin-bottom: 20px;">
+                <h3 style="color: var(--bsu-red); margin-bottom: 10px;">Personal Information</h3>
+                <p><strong>Name:</strong> <span id="myProfileName">Loading...</span></p>
+                <p><strong>Student ID:</strong> <span id="myProfileId">Loading...</span></p>
+                <p><strong>Date of Birth:</strong> <span id="myProfileDob">Loading...</span></p>
+            </div>
+
+            <div>
+                <h3 style="color: var(--bsu-red); margin-bottom: 10px;">My Visit History</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left;">
+                    <thead>
+                        <tr style="background-color: #f4f4f4; border-bottom: 2px solid #ccc;">
+                            <th style="padding: 10px;">Date & Time</th>
+                            <th style="padding: 10px;">Symptoms/Reason</th>
+                            <th style="padding: 10px;">Medication Given</th>
+                        </tr>
+                    </thead>
+                    <tbody id="myVisitHistoryBody">
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 10px; color: #666;">Loading your records...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="dashboard-layout.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

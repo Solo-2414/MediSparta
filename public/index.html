@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediSparta - Login</title>    
+    <link rel="icon" type="image/png" href="Batangas_State_Logo.png?v=2">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header id="top-nav">
+        <div class="nav-left">
+            <h1 class="logo">MediSparta Clinic System</h1>
+        </div>
+        <button id="theme-toggle-login" class="btn-primary" style="width: auto; padding: 6px 16px; margin: 0; background: transparent; border: 1px solid white;">🌙 Dark Mode</button>
+    </header>
+
+    <main id="main-content" style="display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 60px); padding: 20px;">
+        
+        <div class="login-card fade-in" style="width: 100%; max-width: 420px; padding: 40px 30px;">
+            
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h2 style="color: var(--bsu-red); font-size: 1.8rem; margin-bottom: 8px;">Welcome Spartan</h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">Sign in to access the clinic system</p>
+            </div>
+            
+            <div id="loginErrorBanner" style="display: none; background-color: rgba(237, 27, 47, 0.1); color: var(--bsu-red); padding: 12px; border-radius: 8px; border-left: 4px solid var(--bsu-red); margin-bottom: 20px; font-weight: 600; font-size: 0.9rem; text-align: center; opacity: 0; transition: opacity 0.3s ease;">
+                </div>
+            
+            <form id="loginForm">
+                <label for="role">Select Role:</label>
+                <select id="role" required>
+                    <option value="student">Student</option>
+                    <option value="staff">Clinic Staff (Nurse/Doctor)</option>
+                    <option value="admin">System Admin</option>
+                </select>
+
+                <label for="username">Username / ID:</label>
+                <input type="text" id="username" placeholder="Enter your ID" required>
+
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter password" required>
+
+                <button type="submit" class="btn-primary" style="margin-top: 20px; padding: 14px; font-size: 1.05rem;">Secure Login</button>
+            </form>
+        </div>
+
+    </main>
+
+    <script src="script.js"></script>
+
+    <script>
+        const themeBtn = document.getElementById('theme-toggle-login');
+        
+        // 1. Check memory on page load
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+            themeBtn.textContent = '☀️ Light Mode';
+        }
+
+        // 2. Listen for clicks
+        themeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            if (document.body.classList.contains('dark-theme')) {
+                themeBtn.textContent = '☀️ Light Mode';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeBtn.textContent = '🌙 Dark Mode';
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -21,8 +21,8 @@
         <div class="login-card fade-in" style="width: 100%; max-width: 420px; padding: 40px 30px;">
             
             <div style="text-align: center; margin-bottom: 25px;">
-                <h2 style="color: var(--bsu-red); font-size: 1.8rem; margin-bottom: 8px;">Welcome Spartan</h2>
-                <p style="color: var(--text-muted); font-size: 0.95rem;">Sign in to access the clinic system</p>
+                <h2 style="color: var(--bsu-red); font-size: 1.8rem; margin-bottom: 8px;">Welcome, Spartan!</h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">Log in to access the clinic system</p>
             </div>
             
             <div id="loginErrorBanner" style="display: none; background-color: rgba(237, 27, 47, 0.1); color: var(--bsu-red); padding: 12px; border-radius: 8px; border-left: 4px solid var(--bsu-red); margin-bottom: 20px; font-weight: 600; font-size: 0.9rem; text-align: center; opacity: 0; transition: opacity 0.3s ease;">
@@ -31,9 +31,10 @@
             <form id="loginForm">
                 <label for="role">Select Role:</label>
                 <select id="role" required>
+                    <option value="" disabled selected>Select your role</option>
                     <option value="student">Student</option>
-                    <option value="staff">Clinic Staff (Nurse/Doctor)</option>
-                    <option value="admin">System Admin</option>
+                    <option value="staff">Clinic Staff</option>
+                    <option value="admin">Administrator</option>
                 </select>
 
                 <label for="username">Username / ID:</label>
@@ -47,7 +48,7 @@
         </div>
 
     </main>
-
+   
     <script src="script.js"></script>
 
     <script>

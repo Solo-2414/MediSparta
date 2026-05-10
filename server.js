@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const db = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root', 
-    password: process.env.DB_PASSWORD || '241405', 
+    password: process.env.DB_PASSWORD || '@Rootpassword1', 
     database: process.env.DB_NAME || 'MediSparta',
     port: process.env.DB_PORT || 3306,
     // NEW: This allows Aiven to accept the connection without a physical certificate file
@@ -252,14 +252,126 @@ app.get('/api/admin/students', (req, res) => {
 
 // --- ROUTE: Admin Chart Data (Count Users) ---
 app.get('/api/admin/chart-data', (req, res) => {
-    const sql = `
-        SELECT 'Enrolled Students' as user_type, COUNT(*) as total_count FROM students
-        UNION
-        SELECT 'Clinic Staff' as user_type, COUNT(*) as total_count FROM staff
-    `;
-    db.query(sql, (err, results) => {
+    const allowedRanges = new Set(['daily', 'weekly', 'monthly', 'yearly']);
+    const range = allowedRanges.has(req.query.range) ? req.query.range : 'daily';
+
+    const now = new Date();
+    const monthFormatter = new Intl.DateTimeFormat('en-PH', {
+        timeZone: 'Asia/Manila',
+        month: 'short',
+        year: 'numeric'
+    });
+
+    const dayFormatter = new Intl.DateTimeFormat('en-PH', {
+        timeZone: 'Asia/Manila',
+        month: 'short',
+        day: 'numeric'
+    });
+
+    const hourFormatter = new Intl.DateTimeFormat('en-PH', {
+        timeZone: 'Asia/Manila',
+        hour: 'numeric',
+        hour12: true
+    });
+
+    const bucketKey = (date, granularity) => {
+        const timeValue = new Date(date).getTime();
+        const localized = new Date(timeValue + (8 * 60 * 60 * 1000));
+
+        if (granularity === 'hour') {
+            return `${localized.getUTCFullYear()}-${String(localized.getUTCMonth() + 1).padStart(2, '0')}-${String(localized.getUTCDate()).padStart(2, '0')}-${String(localized.getUTCHours()).padStart(2, '0')}`;
+        }
+
+        if (granularity === 'month') {
+            return `${localized.getUTCFullYear()}-${String(localized.getUTCMonth() + 1).padStart(2, '0')}`;
+        }
+
+        return `${localized.getUTCFullYear()}-${String(localized.getUTCMonth() + 1).padStart(2, '0')}-${String(localized.getUTCDate()).padStart(2, '0')}`;
+    };
+
+    const buildBuckets = (startDate, endDate, granularity, labelFormatter) => {
+        const buckets = new Map();
+        const cursor = new Date(startDate);
+        cursor.setHours(0, 0, 0, 0);
+
+        while (cursor <= endDate) {
+            const key = bucketKey(cursor, granularity);
+            buckets.set(key, {
+                label: labelFormatter(cursor),
+                total_count: 0
+            });
+
+            if (granularity === 'month') {
+                cursor.setMonth(cursor.getMonth() + 1);
+                cursor.setDate(1);
+            } else if (granularity === 'hour') {
+                cursor.setHours(cursor.getHours() + 1);
+            } else {
+                cursor.setDate(cursor.getDate() + 1);
+            }
+        }
+
+        return buckets;
+    };
+
+    const finish = (title, buckets) => {
+        res.status(200).json({
+            success: true,
+            title,
+            data: Array.from(buckets.values())
+        });
+    };
+
+    let startDate;
+    let labelFormatter;
+    let granularity;
+    let title;
+
+    if (range === 'daily') {
+        granularity = 'hour';
+        startDate = new Date(now);
+        startDate.setHours(0, 0, 0, 0);
+        labelFormatter = (date) => hourFormatter.format(date);
+        title = 'Daily Clinic Visits';
+    } else if (range === 'yearly') {
+        granularity = 'month';
+        startDate = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+        startDate.setHours(0, 0, 0, 0);
+        labelFormatter = (date) => monthFormatter.format(date);
+        title = 'Yearly Clinic Visits';
+    } else if (range === 'monthly') {
+        granularity = 'day';
+        startDate = new Date(now);
+        startDate.setDate(startDate.getDate() - 29);
+        startDate.setHours(0, 0, 0, 0);
+        labelFormatter = (date) => dayFormatter.format(date);
+        title = 'Monthly Clinic Visits';
+    } else {
+        granularity = 'day';
+        startDate = new Date(now);
+        startDate.setDate(startDate.getDate() - 6);
+        startDate.setHours(0, 0, 0, 0);
+        labelFormatter = (date) => new Intl.DateTimeFormat('en-PH', {
+            timeZone: 'Asia/Manila',
+            weekday: 'short'
+        }).format(date);
+        title = 'Weekly Clinic Visits';
+    }
+
+    const sql = `SELECT visit_date FROM visits WHERE visit_date >= ? ORDER BY visit_date ASC`;
+
+    db.query(sql, [startDate], (err, results) => {
         if (err) return res.status(500).json({ error: 'Database error.' });
-        res.status(200).json({ success: true, data: results });
+
+        const buckets = buildBuckets(startDate, now, granularity, labelFormatter);
+
+        results.forEach(row => {
+            const key = bucketKey(row.visit_date, granularity);
+            const existing = buckets.get(key);
+            if (existing) existing.total_count += 1;
+        });
+
+        finish(title, buckets);
     });
 });
 

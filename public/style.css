@@ -25,6 +25,14 @@ body {
     background-color: var(--bg-color);
     color: var(--text-main);
     overflow-x: hidden; /* Prevents scrolling when sidebar is hidden */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    scrollbar-gutter: stable; /* Prevents layout shift when scrollbar appears/disappears */
+}
+
+body.modal-active {
+    overflow: hidden;
 }
 
 /* ==========================================
@@ -39,14 +47,48 @@ body {
     justify-content: space-between;
     padding: 0 20px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     z-index: 1000;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .nav-left {
     display: flex;
     align-items: center;
     gap: 15px;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.icon-toggle-btn {
+    background: transparent;
+    color: white;
+    border: 1px solid white;
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.1s;
+}
+
+.icon-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.icon-toggle-btn:active {
+    transform: scale(0.95);
 }
 
 .hamburger {
@@ -87,23 +129,49 @@ body {
     transform: scale(0.95);
 }
 
+/* design for clock and date */
+.page-clock {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    margin: 0 0 18px auto;
+    color: rgb(0, 0, 0);
+    text-align: right;
+    line-height: 1.1;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.page-clock #philippines-time {
+    font-size: 1rem;
+}
+
+.page-clock #philippines-date {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
 /* ==========================================
    SLIDING SIDEBAR
    ========================================== */
 .sidebar {
     position: fixed;
     top: 60px; 
-    left: calc(-1 * var(--sidebar-width)); 
+    left: 0;
+    transform: translateX(calc(-100% - 20px));
     width: var(--sidebar-width);
     height: calc(100vh - 60px);
     background-color: var(--card-bg);
     box-shadow: 2px 0 15px rgba(0,0,0,0.05);
-    transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     z-index: 999;
+    will-change: transform;
 }
 
 .sidebar.active {
-    left: 0;
+    transform: translateX(0);
 }
 
 .sidebar-header {
@@ -137,9 +205,17 @@ body {
    ========================================== */
 #main-content {
     padding: 40px 20px;
-    max-width: 1050px;
-    margin: 0 auto;
-    transition: margin-left 0.4s;
+    margin: 60px auto 0;
+    flex: 1;
+    width: 100%;
+    max-width: 1150px;
+    box-sizing: border-box;
+    transition: margin-left 0.4s ease;
+}
+
+body.sidebar-open #main-content {
+    margin-left: var(--sidebar-width);
+    margin-right: auto;
 }
 
 /* ==========================================
@@ -150,6 +226,7 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 24px;
     margin-top: 20px;
+    align-items: start;
 }
 
 .card {
@@ -161,6 +238,7 @@ body {
     display: flex;
     flex-direction: column;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
 }
 
 .card:hover {
@@ -189,8 +267,14 @@ body {
     border-radius: 16px;
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.06);
     border: 1px solid rgba(0, 0, 0, 0.03);
-    max-width: 400px;
-    margin: 0 auto;
+    max-width: 100%;
+    margin: 0 auto 20px auto;
+    width: 100%;
+}
+
+/* Student portal card - wider layout */
+#main-content > .login-card {
+    max-width: 900px;
 }
 
 /* ==========================================
@@ -216,6 +300,38 @@ body {
 
 .btn-primary:active {
     transform: scale(0.97);
+}
+
+.overview-range-group {
+    display: inline-flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.overview-range-btn {
+    background: transparent;
+    color: var(--bsu-red);
+    border: 1px solid rgba(237, 27, 47, 0.3);
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.2s, color 0.2s, transform 0.1s, border-color 0.2s;
+}
+
+.overview-range-btn:hover {
+    border-color: var(--bsu-red);
+    background: rgba(237, 27, 47, 0.06);
+}
+
+.overview-range-btn.active {
+    background: var(--bsu-red);
+    color: white;
+    border-color: var(--bsu-red);
+}
+
+.overview-range-btn:active {
+    transform: scale(0.98);
 }
 
 /* ==========================================
@@ -244,6 +360,17 @@ input[type="text"], input[type="number"], input[type="password"], input[type="da
     margin-bottom: 20px;
     font-size: 1rem;
     color: var(--text-main);
+}
+
+input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 input:focus, select:focus {
@@ -301,6 +428,10 @@ body.dark-theme select {
     border-color: #444;
 }
 
+body.dark-theme .page-clock {
+    color: #ffffff;
+}
+
 /* Fix table header backgrounds in dark mode */
 body.dark-theme tr[style*="background-color: #f4f4f4;"] {
     background-color: #2d2d2d !important;
@@ -332,6 +463,11 @@ body.dark-theme td, body.dark-theme th {
     pointer-events: auto;
 }
 
+.admin-modal-overlay {
+    align-items: flex-start;
+    padding: 40px 20px;
+}
+
 .modal-content {
     background: var(--card-bg);
     padding: 30px;
@@ -346,6 +482,25 @@ body.dark-theme td, body.dark-theme th {
     transform: translateY(-20px) scale(0.95);
     transition: transform 0.3s ease;
     box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+}
+
+.admin-modal-content {
+    max-width: 1050px;
+    width: min(1050px, 100%);
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+}
+
+.admin-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px;
+}
+
+.admin-modal-view {
+    width: 100%;
 }
 
 .modal-overlay.active .modal-content {
@@ -423,4 +578,458 @@ body.dark-theme .autocomplete-item {
 
 .autocomplete-item:hover {
     background-color: var(--bg-color);
+}
+
+/* Apply to your middle section (between header and footer) */
+main {
+    flex: 1;
+}
+
+/* footer */
+footer {
+    background-color: #1A1A1A;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 0.8rem;
+    margin-top: auto; 
+    width: 100%;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN - MOBILE & TABLET
+   ========================================== */
+
+/* Tablet Screens (768px - 1024px) */
+@media (max-width: 1024px) {
+    :root {
+        --sidebar-width: 220px;
+    }
+
+    #main-content {
+        padding: 30px 15px;
+    }
+
+    .dashboard-cards {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    .modal-content {
+        width: 95%;
+        padding: 25px;
+    }
+
+    .admin-modal-content {
+        max-width: 95%;
+    }
+
+    .logo {
+        font-size: 1.2rem;
+    }
+}
+
+/* Mobile Screens (480px - 768px) */
+@media (max-width: 768px) {
+    :root {
+        --sidebar-width: 200px;
+    }
+
+    /* Navigation adjustments */
+    #top-nav {
+        padding: 0 15px;
+        height: 55px;
+    }
+
+    .logo {
+        font-size: 1rem;
+        letter-spacing: 0px;
+    }
+
+    .nav-left {
+        gap: 12px;
+    }
+
+    /* Sidebar adjustments */
+    .sidebar {
+        width: var(--sidebar-width);
+        left: calc(-1 * var(--sidebar-width));
+    }
+
+    .sidebar-links li a {
+        padding: 14px 16px;
+        font-size: 0.95rem;
+    }
+
+    /* Main content adjustments */
+    #main-content {
+        padding: 20px 12px;
+        max-width: 1150px;
+    }
+
+    body.sidebar-open #main-content {
+        margin-left: var(--sidebar-width);
+        margin-right: auto;
+    }
+
+    /* Dashboard cards - single column layout */
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-top: 15px;
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    .card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+
+    .card p {
+        font-size: 0.9rem;
+        line-height: 1.4;
+        margin-bottom: 12px;
+    }
+
+    /* Button adjustments */
+    .btn-primary {
+        padding: 11px 16px;
+        font-size: 0.95rem;
+    }
+
+    /* Form inputs */
+    label {
+        font-size: 0.85rem;
+        margin-bottom: 5px;
+    }
+
+    input[type="text"], 
+    input[type="number"], 
+    input[type="password"], 
+    input[type="date"], 
+    select,
+    textarea {
+        padding: 11px 12px;
+        font-size: 0.95rem;
+        margin-bottom: 15px;
+    }
+
+    /* Modal adjustments */
+    .modal-overlay {
+        padding: 20px 10px;
+    }
+
+    .modal-overlay.admin-modal-overlay {
+        padding: 20px 10px;
+    }
+
+    .modal-content {
+        width: 100%;
+        max-width: 100%;
+        padding: 20px;
+        min-height: auto;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+    }
+
+    .admin-modal-content {
+        max-width: 100%;
+        width: 100%;
+        max-height: calc(100vh - 80px);
+    }
+
+    .close-btn {
+        top: 15px;
+        right: 15px;
+        font-size: 24px;
+    }
+
+    /* Heading adjustments */
+    #main-content h2 {
+        font-size: 1.4rem;
+        margin-bottom: 10px;
+    }
+
+    #main-content h3 {
+        font-size: 1.1rem;
+        margin-top: 20px;
+        margin-bottom: 12px;
+    }
+
+    /* Login card adjustments */
+    .login-card {
+        padding: 25px 20px;
+        max-width: 100%;
+        margin: 0 auto 20px auto;
+    }
+
+    .login-card h2 {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+    }
+
+    /* Table adjustments */
+    table {
+        font-size: 0.85rem !important;
+    }
+
+    thead th {
+        padding: 12px 10px !important;
+    }
+
+    tbody td {
+        padding: 10px 8px !important;
+    }
+
+    /* Overview button group */
+    .overview-range-group {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .overview-range-btn {
+        padding: 7px 12px;
+        font-size: 0.85rem;
+    }
+
+    /* Autocomplete dropdown */
+    .autocomplete-dropdown {
+        max-height: 250px;
+    }
+
+    .autocomplete-item {
+        padding: 12px 15px;
+        font-size: 0.95rem;
+    }
+
+    /* Page clock */
+    .page-clock {
+        font-size: 0.8rem;
+        margin-bottom: 15px;
+    }
+
+    .page-clock #philippines-time {
+        font-size: 0.9rem;
+    }
+
+    .page-clock #philippines-date {
+        font-size: 0.9rem;
+    }
+}
+
+/* Small Mobile Screens (320px - 480px) */
+@media (max-width: 480px) {
+    :root {
+        --sidebar-width: 180px;
+    }
+
+    /* Navigation */
+    #top-nav {
+        padding: 0 10px;
+        height: 50px;
+    }
+
+    .logo {
+        font-size: 0.85rem;
+        letter-spacing: 0px;
+    }
+
+    .nav-left {
+        gap: 8px;
+    }
+
+    .icon-toggle-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        width: var(--sidebar-width);
+        left: calc(-1 * var(--sidebar-width));
+    }
+
+    .sidebar-header {
+        padding: 15px;
+    }
+
+    .sidebar-links li a {
+        padding: 12px 14px;
+        font-size: 0.9rem;
+    }
+
+    /* Main content */
+    #main-content {
+        padding: 15px 10px;
+        max-width: 1150px;
+    }
+
+    body.sidebar-open #main-content {
+        margin-left: var(--sidebar-width);
+        margin-right: auto;
+    }
+
+    /* Cards */
+    .card {
+        padding: 15px;
+    }
+
+    .card h3 {
+        font-size: 1rem;
+        margin-bottom: 8px;
+    }
+
+    .card p {
+        font-size: 0.85rem;
+        margin-bottom: 10px;
+    }
+
+    /* Forms */
+    label {
+        font-size: 0.8rem;
+    }
+
+    input[type="text"], 
+    input[type="number"], 
+    input[type="password"], 
+    input[type="date"], 
+    select,
+    textarea {
+        padding: 10px 10px;
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+    }
+
+    /* Buttons */
+    .btn-primary {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+
+    /* Modals */
+    .modal-content {
+        padding: 18px;
+    }
+
+    .close-btn {
+        font-size: 20px;
+    }
+
+    /* Headings */
+    #main-content h2 {
+        font-size: 1.2rem;
+    }
+
+    #main-content h3 {
+        font-size: 0.95rem;
+    }
+
+    .login-card h2 {
+        font-size: 1.3rem;
+    }
+
+    /* Table adjustments - make scrollable horizontally */
+    table {
+        display: block !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        width: 100% !important;
+    }
+
+    thead tr,
+    tbody tr {
+        display: table !important;
+        width: 100% !important;
+    }
+
+    thead th {
+        white-space: nowrap;
+    }
+
+    tbody td {
+        white-space: nowrap;
+    }
+
+    /* Range buttons */
+    .overview-range-group {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .overview-range-btn {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    /* Autocomplete */
+    .autocomplete-dropdown {
+        max-height: 200px;
+    }
+
+    .autocomplete-item {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+
+    /* Page clock */
+    .page-clock {
+        font-size: 0.7rem;
+        margin-bottom: 12px;
+    }
+
+    .page-clock #philippines-time {
+        font-size: 0.8rem;
+    }
+
+    .page-clock #philippines-date {
+        font-size: 0.8rem;
+    }
+
+    /* Grid adjustments */
+    .dashboard-cards {
+        gap: 12px;
+    }
+
+    /* Admin modal */
+    .admin-modal-content {
+        max-height: calc(100vh - 40px);
+    }
+}
+
+/* Extra Small Screens (< 320px) */
+@media (max-width: 320px) {
+    .logo {
+        font-size: 0.75rem;
+    }
+
+    #main-content h2 {
+        font-size: 1rem;
+    }
+
+    .card h3 {
+        font-size: 0.9rem;
+    }
+
+    .btn-primary {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+
+    input[type="text"], 
+    input[type="number"], 
+    input[type="password"], 
+    input[type="date"], 
+    select {
+        font-size: 0.85rem;
+        padding: 8px 8px;
+    }
 }

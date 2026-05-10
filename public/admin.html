@@ -20,7 +20,16 @@
         <div class="dashboard-cards fade-in">
             
             <div class="card" style="grid-column: 1 / -1; margin-bottom: 10px;">
-                <h3 style="margin-bottom: 15px;">System Adoption Overview</h3>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">Clinic Activity Overview</h3>
+                    <div class="overview-range-group" role="tablist" aria-label="Overview range">
+                        <button type="button" class="overview-range-btn active" data-overview-range="daily">Daily</button>
+                        <button type="button" class="overview-range-btn" data-overview-range="weekly">Weekly</button>
+                        <button type="button" class="overview-range-btn" data-overview-range="monthly">Monthly</button>
+                        <button type="button" class="overview-range-btn" data-overview-range="yearly">Yearly</button>
+                    </div>
+                </div>
+                <p id="overviewStatus" style="margin-bottom: 12px; color: #666; font-size: 0.95rem;">Showing daily overview of clinic visits.</p>
                 <div style="position: relative; height: 250px; width: 100%;">
                     <canvas id="adminChart"></canvas>
                 </div>
@@ -29,106 +38,135 @@
             <div class="card">
                 <h3>Register Student</h3>
                 <p>Enroll a new student to generate their official ID.</p>
-                <button class="btn-primary" onclick="document.getElementById('studentRegForm').style.display='block'; document.getElementById('staffRegForm').style.display='none'; document.getElementById('userDirectoryView').style.display='none';">New Student</button>
+                <button class="btn-primary" onclick="openAdminModal('student')">New Student</button>
             </div>
 
             <div class="card">
                 <h3>Register Clinic Staff</h3>
                 <p>Add a new nurse or doctor to the system.</p>
-                <button class="btn-primary" onclick="document.getElementById('staffRegForm').style.display='block'; document.getElementById('studentRegForm').style.display='none'; document.getElementById('userDirectoryView').style.display='none';">New Staff</button>
+                <button class="btn-primary" onclick="openAdminModal('staff')">New Staff</button>
             </div>
 
             <div class="card">
                 <h3>User Directory</h3>
                 <p>View a master list of all registered accounts.</p>
-                <button class="btn-primary" onclick="loadUserDirectory()">View Directory</button>
+                <button class="btn-primary" onclick="openAdminModal('directory')">View Directory</button>
             </div>
-        </div>
-
-        <div id="studentRegForm" class="login-card fade-in" style="display: none; max-width: 600px; margin: 20px 0 0 0;">
-            <h3 style="color: var(--bsu-red); border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 15px;">Student Enrollment Form</h3>
-            <form id="form-add-student">
-                <label>First Name:</label>
-                <input type="text" id="stu_first" required>
-                
-                <label>Last Name:</label>
-                <input type="text" id="stu_last" required>
-                
-                <label>Date of Birth:</label>
-                <input type="date" id="stu_dob" required style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
-                
-                <label>Campus:</label>
-                <select id="stu_campus" required>
-                    <option value="5">Lipa</option>
-                    <option value="1">Pablo Borbon</option>
-                    <option value="2">Alangilan</option>
-                </select>
-
-                <label>Assign Password:</label>
-                <input type="text" id="stu_pass" value="student123" required>
-
-                <button type="submit" class="btn-primary" style="margin-top: 10px;">Register Student & Generate ID</button>
-            </form>
-        </div>
-
-        <div id="staffRegForm" class="login-card fade-in" style="display: none; max-width: 600px; margin: 20px 0 0 0;">
-            <h3 style="color: var(--bsu-red); border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 15px;">Staff Registration Form</h3>
-            <form id="form-add-staff">
-                <label>First Name:</label>
-                <input type="text" id="stf_first" required>
-                
-                <label>Last Name:</label>
-                <input type="text" id="stf_last" required>
-                
-                <label>Job Title:</label>
-                <select id="stf_title" required>
-                    <option value="Nurse">Nurse</option>
-                    <option value="Head Nurse">Head Nurse</option>
-                    <option value="Clinic Physician">Clinic Physician</option>
-                </select>
-                
-                <label>Assigned Campus:</label>
-                <select id="stf_campus" required>
-                    <option value="5">Lipa</option>
-                    <option value="1">Pablo Borbon</option>
-                    <option value="2">Alangilan</option>
-                </select>
-
-                <label>Assign Password:</label>
-                <input type="text" id="stf_pass" value="staff123" required>
-
-                <button type="submit" class="btn-primary" style="margin-top: 10px;">Register Staff & Generate ID</button>
-            </form>
-        </div>
-
-        <div id="userDirectoryView" class="login-card fade-in" style="display: none; max-width: 900px; margin: 20px 0 0 0; padding: 20px;">
-            <h3 style="color: var(--bsu-red); border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 15px;">Master User Directory</h3>
-            
-            <h4 style="margin-top: 20px; color: #333;">Registered Clinic Staff</h4>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: left;">
-                <tr style="background-color: #f4f4f4; border-bottom: 2px solid #ccc;">
-                    <th style="padding: 10px;">Staff ID</th>
-                    <th style="padding: 10px;">Name</th>
-                    <th style="padding: 10px;">Job Title</th>
-                    <th style="padding: 10px;">Campus ID</th>
-                </tr>
-                <tbody id="adminStaffTable"><tr><td colspan="4">Loading...</td></tr></tbody>
-            </table>
-
-            <h4 style="margin-top: 20px; color: #333;">Enrolled Students</h4>
-            <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                <tr style="background-color: #f4f4f4; border-bottom: 2px solid #ccc;">
-                    <th style="padding: 10px;">Student ID</th>
-                    <th style="padding: 10px;">Name</th>
-                    <th style="padding: 10px;">Date of Birth</th>
-                    <th style="padding: 10px;">Campus ID</th>
-                </tr>
-                <tbody id="adminStudentTable"><tr><td colspan="4">Loading...</td></tr></tbody>
-            </table>
         </div>
 
     </main>
 
+    <div id="adminModal" class="modal-overlay admin-modal-overlay">
+        <div class="modal-content admin-modal-content">
+            <button class="close-btn" type="button" onclick="closeAdminModal()">&times;</button>
+            <div class="admin-modal-header">
+                <div>
+                    <h2 id="adminModalTitle" style="color: var(--bsu-red); margin-bottom: 6px;">Student Enrollment Form</h2>
+                </div>
+            </div>
+
+            <div id="studentRegForm" class="admin-modal-view login-card fade-in" style="display: none; max-width: 100%; margin: 20px 0 0 0; margin-top: 10px; border: 1px solid black; padding: 10px; box-shadow: 50px;">
+                <h3 style="color: var(--bsu-red); border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 15px;">Information Details:</h3>
+                <form id="form-add-student">
+                    <label>First Name:</label>
+                    <input type="text" id="stu_first" required>
+                    
+                    <label>Last Name:</label>
+                    <input type="text" id="stu_last" required>
+                    
+                    <label>Date of Birth:</label>
+                    <input type="date" id="stu_dob" required style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                    
+                    <label>Campus:</label>
+                    <select id="stu_campus" required>
+                        <option value="" disabled selected>-- Select campus --</option>
+                        <option value="1">Pablo Borbon</option>
+                        <option value="2">Alangilan</option>
+                        <option value="3">Balayan</option>
+                        <option value="4">JPLPC-Malvar</option>
+                        <option value="5">Lemery</option>
+                        <option value="6">Lipa</option>
+                        <option value="7">Lobo</option>
+                        <option value="8">Rosario</option>
+                        <option value="9">Mabini</option>
+                        <option value="10">ARASOF-Nasugbu</option>
+                    </select>
+                    <label>Assign Password:</label>
+                    <input type="text" id="stu_pass" value="student123" required>
+
+                    <button type="submit" class="btn-primary" style="margin-top: 10px;">Register Student & Generate ID</button>
+                </form>
+            </div>
+
+            <div id="staffRegForm" class="admin-modal-view login-card fade-in" style="display: none; max-width: 100%; margin: 20px 0 0 0; margin-top: 10px; border: 2px solid black; padding: 10px;">
+                <h3 style="color: var(--bsu-red); border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 15px;">Information Details:</h3>
+                <form id="form-add-staff">
+                    <label>First Name:</label>
+                    <input type="text" id="stf_first" required>
+                    
+                    <label>Last Name:</label>
+                    <input type="text" id="stf_last" required>
+                    
+                    <label>Job Title:</label>
+                    <select id="stf_title" required>
+                        <option value="" disabled selected>-- Select job title --</option>
+                        <option value="Nurse">Nurse</option>
+                        <option value="Head Nurse">Head Nurse</option>
+                        <option value="Clinic Physician">Clinic Physician</option>
+                    </select>
+                    
+                    <label>Assigned Campus:</label>
+                    <select id="stf_campus" required>
+                        <option value="" disabled selected>-- Select campus --</option>
+                        <option value="1">Pablo Borbon</option>
+                        <option value="2">Alangilan</option>
+                        <option value="3">Balayan</option>
+                        <option value="4">JPLPC-Malvar</option>
+                        <option value="5">Lemery</option>
+                        <option value="6">Lipa</option>
+                        <option value="7">Lobo</option>
+                        <option value="8">Rosario</option>
+                        <option value="9">Mabini</option>
+                        <option value="10">ARASOF-Nasugbu</option>
+                    </select>
+                    
+                    <label>Assign Password:</label>
+                    <input type="text" id="stf_pass" value="staff123" required>
+    
+                    <button type="submit" class="btn-primary" style="margin-top: 10px;">Register Staff & Generate ID</button>
+                </form>
+            </div>
+
+            <div id="userDirectoryView" class="admin-modal-view login-card fade-in" style="display: none; max-width: 100%; margin: 20px 0 0 0; margin-top: 10px; border: 2px solid black;  padding: 10px;">
+                <h3 style="color: var(--bsu-red); border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 15px;">Registered Informations:</h3>
+                
+                <h4 style="margin-top: 20px; color: #333;">Registered Clinic Staff</h4>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: left;">
+                    <tr style="background-color: #f4f4f4; border-bottom: 2px solid #ccc;">
+                        <th style="padding: 10px;">Staff ID</th>
+                        <th style="padding: 10px;">Name</th>
+                        <th style="padding: 10px;">Job Title</th>
+                        <th style="padding: 10px;">Campus ID</th>
+                    </tr>
+                    <tbody id="adminStaffTable"><tr><td colspan="4">Loading...</td></tr></tbody>
+                </table>
+
+                <h4 style="margin-top: 20px; color: #333;">Enrolled Students</h4>
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <tr style="background-color: #f4f4f4; border-bottom: 2px solid #ccc;">
+                        <th style="padding: 10px;">Student ID</th>
+                        <th style="padding: 10px;">Name</th>
+                        <th style="padding: 10px;">Date of Birth</th>
+                        <th style="padding: 10px;">Campus ID</th>
+                    </tr>
+                    <tbody id="adminStudentTable"><tr><td colspan="4">Loading...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <footer> 
+            <p> MediSparta © 2026. All Rights Reserved </p>
+        </footer>
     <script src="dashboard-layout.js"></script>
     <script src="script.js"></script>
 </body>

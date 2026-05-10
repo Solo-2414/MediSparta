@@ -24,8 +24,12 @@ class AuthManager {
         this.roleSelect.dispatchEvent(new Event('change'));
         this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
     }
-
+    // sets the username label and placeholder based on the selected role, and also clears any previous input for security and clarity. It also changes the input type to "number" for students and staff to encourage correct input format, while keeping it as "text" for admins who may have alphanumeric usernames. 
     updateLabels(role) {
+        this.usernameInput.value = '';
+        const passwordInput = document.getElementById('password');
+        if (passwordInput) passwordInput.value = '';
+
         if (role === 'admin') {
             this.usernameLabel.textContent = 'Admin Username:';
             this.usernameInput.placeholder = 'Enter your username';
@@ -527,6 +531,13 @@ class AdminManager {
     constructor() {
         this.formAddStudent = document.getElementById('form-add-student');
         this.formAddStaff = document.getElementById('form-add-staff');
+        this.adminModal = document.getElementById('adminModal');
+        this.adminModalTitle = document.getElementById('adminModalTitle');
+        this.adminModalDescription = document.getElementById('adminModalDescription');
+        this.overviewButtons = Array.from(document.querySelectorAll('[data-overview-range]'));
+        this.overviewStatus = document.getElementById('overviewStatus');
+        this.chartInstance = null;
+        this.currentOverviewRange = 'daily';
 
         if (this.formAddStudent) this.init();
     }
@@ -535,9 +546,66 @@ class AdminManager {
         this.formAddStudent.addEventListener('submit', (e) => this.registerUser(e, 'student'));
         this.formAddStaff.addEventListener('submit', (e) => this.registerUser(e, 'staff'));
 
+        this.overviewButtons.forEach(button => {
+            button.addEventListener('click', () => this.setOverviewRange(button.dataset.overviewRange));
+        });
+
         if (document.getElementById('adminChart')) {
-            this.loadChart();
+            this.loadChart(this.currentOverviewRange);
         }
+    }
+
+    setOverviewRange(range) {
+        this.currentOverviewRange = range;
+
+        this.overviewButtons.forEach(button => {
+            button.classList.toggle('active', button.dataset.overviewRange === range);
+        });
+
+        const statusMap = {
+            daily: 'Showing daily overview of clinic visits.',
+            weekly: 'Showing weekly overview of clinic visits.',
+            monthly: 'Showing monthly overview of clinic visits.',
+            yearly: 'Showing yearly overview of clinic visits.'
+        };
+
+        if (this.overviewStatus) {
+            this.overviewStatus.textContent = statusMap[range] || statusMap.weekly;
+        }
+
+        this.loadChart(range);
+    }
+
+    showModal(view) {
+        if (!this.adminModal) return;
+
+        this.adminModal.classList.add('active');
+        document.body.classList.add('modal-active');
+
+        document.getElementById('studentRegForm').style.display = 'none';
+        document.getElementById('staffRegForm').style.display = 'none';
+        document.getElementById('userDirectoryView').style.display = 'none';
+
+        const titleMap = {
+            student: ['Student Enrollment Form', 'Register a student while keeping the dashboard visible in the background.'],
+            staff: ['Staff Registration Form', 'Register clinic staff while keeping the dashboard visible in the background.'],
+            directory: ['Master User Directory', 'View registered accounts in a focused modal while keeping the dashboard visible in the background.']
+        };
+
+        const [title, description] = titleMap[view] || titleMap.student;
+        if (this.adminModalTitle) this.adminModalTitle.textContent = title;
+        if (this.adminModalDescription) this.adminModalDescription.textContent = description;
+
+        if (view === 'student') document.getElementById('studentRegForm').style.display = 'block';
+        if (view === 'staff') document.getElementById('staffRegForm').style.display = 'block';
+        if (view === 'directory') document.getElementById('userDirectoryView').style.display = 'block';
+    }
+
+    hideModal() {
+        if (!this.adminModal) return;
+
+        this.adminModal.classList.remove('active');
+        document.body.classList.remove('modal-active');
     }
 
     async registerUser(e, type) {
@@ -578,12 +646,10 @@ class AdminManager {
     }
 
     async loadDirectory() {
-        document.getElementById('studentRegForm').style.display = 'none';
-        document.getElementById('staffRegForm').style.display = 'none';
-        
+        this.showModal('directory');
+
         const directoryView = document.getElementById('userDirectoryView');
-        if (!directoryView) return; 
-        directoryView.style.display = 'block';
+        if (!directoryView) return;
 
         const staffTable = document.getElementById('adminStaffTable');
         const studentTable = document.getElementById('adminStudentTable');
@@ -623,23 +689,27 @@ class AdminManager {
         }
     }
 
-    async loadChart() {
+    async loadChart(range = 'daily') {
         const canvas = document.getElementById('adminChart');
         
         try {
-            const response = await fetch('http://localhost:3000/api/admin/chart-data');
+            const response = await fetch(`http://localhost:3000/api/admin/chart-data?range=${encodeURIComponent(range)}`);
             const result = await response.json();
 
             if (response.ok && result.success) {
-                const labels = result.data.map(row => row.user_type);
+                const labels = result.data.map(row => row.label);
                 const dataPoints = result.data.map(row => row.total_count);
 
-                new Chart(canvas, {
+                if (this.chartInstance) {
+                    this.chartInstance.destroy();
+                }
+
+                this.chartInstance = new Chart(canvas, {
                     type: 'bar', 
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Total Registered Accounts',
+                            label: result.title || 'Clinic Activity',
                             data: dataPoints,
                             backgroundColor: ['#ed1b2f', '#2c3e50'], 
                             borderRadius: 6, 
@@ -732,6 +802,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminApp = new AdminManager();
 
     window.loadUserDirectory = () => adminApp.loadDirectory();
+    window.openAdminModal = (view) => adminApp.showModal(view);
+    window.closeAdminModal = () => adminApp.hideModal();
 });
 
 // --- GLOBAL MODAL CONTROLS ---
@@ -744,7 +816,13 @@ window.openModal = function(modalId) {
 };
 
 window.closeModal = function(modalId) {
-    document.getElementById(modalId).classList.remove('active');
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+
+    modal.classList.remove('active');
+    if (modalId === 'adminModal') {
+        document.body.classList.remove('modal-active');
+    }
 };
 
 // UX Boost: Prevent accidental closing when dragging mouse out of modal
@@ -760,6 +838,9 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('mouseup', (e) => {
         if (e.target === overlay && !isMouseDownInside) {
             overlay.classList.remove('active');
+            if (overlay.id === 'adminModal') {
+                document.body.classList.remove('modal-active');
+            }
         }
         isMouseDownInside = false;
     });

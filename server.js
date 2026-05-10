@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const db = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root', 
-    password: process.env.DB_PASSWORD || '@Rootpassword1', 
+    password: process.env.DB_PASSWORD || '241405', 
     database: process.env.DB_NAME || 'MediSparta',
     port: process.env.DB_PORT || 3306,
     // NEW: This allows Aiven to accept the connection without a physical certificate file
@@ -85,14 +85,15 @@ app.post('/log-visit', (req, res) => {
         if (err) return res.status(500).json({ error: 'Transaction failed to start.' });
 
         // Step 1: Insert into the Visits table
-            const visitSql = `INSERT INTO visits (student_id, staff_id, symptoms, visit_date) VALUES (?, ?, ?, NOW())`;
-            db.query(visitSql, [student_id, staff_id, symptoms], (err, visitResult) => {
-                if (err) {
-                    // --- NEW: Print the exact reason to the terminal ---
-                    console.error('MYSQL ERROR IN VISITS TABLE:', err.sqlMessage); 
-                    
-                    return db.rollback(() => res.status(500).json({ error: 'Failed to log visit.' }));
-                }
+        const visitSql = `
+            INSERT INTO visits (student_id, staff_id, symptoms, visit_date, campus_id) VALUES (?, ?, ?, NOW(), (SELECT campus_id FROM staff WHERE staff_id = ?))`;
+        
+        // Notice we pass staff_id TWICE now. Once for the visit record, once for the subquery search.
+        db.query(visitSql, [student_id, staff_id, symptoms, staff_id], (err, visitResult) => {
+            if (err) {
+                console.error('MYSQL ERROR IN VISITS TABLE:', err.sqlMessage); 
+                return db.rollback(() => res.status(500).json({ error: 'Failed to log visit.' }));
+            }
 
             const visit_id = visitResult.insertId; // Get the auto-generated Visit ID
 
@@ -174,22 +175,24 @@ app.get('/api/student-records/:id', (req, res) => {
     });
 });
 
-
-// --- ROUTE: Fetch All Inventory ---
+// --- 1. ROUTE: Fetch Inventory (FILTERED BY CAMPUS) ---
 app.get('/api/inventory', (req, res) => {
-    // Sort alphabetically by item name to make it easy for nurses to read
-    const sql = `SELECT inventory_id, item_name, quantity FROM inventory ORDER BY item_name ASC`;
+    const staffId = req.query.staffId; 
     
-    db.query(sql, (err, results) => {
+    // Subquery: Only select inventory where the campus_id matches the staff member's campus_id
+    const sql = `
+        SELECT inventory_id, item_name, quantity 
+        FROM inventory 
+        WHERE campus_id = (SELECT campus_id FROM staff WHERE staff_id = ?)
+        ORDER BY item_name ASC
+    `;
+    
+    db.query(sql, [staffId], (err, results) => {
         if (err) {
             console.error("Error fetching inventory:", err.sqlMessage);
             return res.status(500).json({ error: 'Failed to retrieve inventory data.' });
         }
-        
-        res.status(200).json({ 
-            success: true, 
-            data: results 
-        });
+        res.status(200).json({ success: true, data: results });
     });
 });
 
@@ -377,7 +380,7 @@ app.get('/api/admin/chart-data', (req, res) => {
 
 // --- ROUTE: Staff Dashboard Recent Activity ---
 app.get('/api/staff/recent-visits', (req, res) => {
-    // NEW: Added WHERE clause to filter out visits from previous days!
+    // Filter out visits from previous days
     const sql = `
         SELECT v.visit_date, s.first_name, s.last_name, v.symptoms
         FROM visits v
@@ -405,13 +408,17 @@ app.post('/api/inventory/update', (req, res) => {
     });
 });
 
-// --- ROUTE: Add New Inventory Item ---
+// --- 2. ROUTE: Add New Inventory Item (LOCKED TO CAMPUS) ---
 app.post('/api/inventory/add', (req, res) => {
-    const { item_name, quantity } = req.body;
+    const { item_name, quantity, staff_id } = req.body;
     
-    const sql = `INSERT INTO inventory (item_name, quantity) VALUES (?, ?)`;
+    // Subquery: Automatically attach the new medicine to the nurse's campus!
+    const sql = `
+        INSERT INTO inventory (item_name, quantity, campus_id) 
+        VALUES (?, ?, (SELECT campus_id FROM staff WHERE staff_id = ?))
+    `;
     
-    db.query(sql, [item_name, quantity], (err, result) => {
+    db.query(sql, [item_name, quantity, staff_id], (err, result) => {
         if (err) {
             console.error("Add Item Error:", err.sqlMessage);
             return res.status(500).json({ error: 'Database error adding new item.' });
@@ -420,21 +427,24 @@ app.post('/api/inventory/add', (req, res) => {
     });
 });
 
-// --- ROUTE: Autocomplete Student Search (Lightweight) ---
+// --- 3. ROUTE: Autocomplete Student Search (FILTERED BY CAMPUS) ---
 app.get('/api/staff/search-students', (req, res) => {
     const query = req.query.q;
+    const staffId = req.query.staffId;
+
     if (!query) return res.status(200).json({ success: true, data: [] });
 
-    // Search by ID or partial Name
+    // Subquery: Only search for students who share the same campus_id as the staff member
     const sql = `
         SELECT student_id, first_name, last_name 
         FROM students 
-        WHERE student_id LIKE ? OR first_name LIKE ? OR last_name LIKE ?
+        WHERE campus_id = (SELECT campus_id FROM staff WHERE staff_id = ?)
+        AND (student_id LIKE ? OR first_name LIKE ? OR last_name LIKE ?)
         LIMIT 5
     `;
     const searchTerm = `%${query}%`;
 
-    db.query(sql, [searchTerm, searchTerm, searchTerm], (err, results) => {
+    db.query(sql, [staffId, searchTerm, searchTerm, searchTerm], (err, results) => {
         if (err) return res.status(500).json({ error: 'Database error during search.' });
         res.status(200).json({ success: true, data: results });
     });
@@ -445,4 +455,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running live on http://localhost:${PORT}`);
 });
-

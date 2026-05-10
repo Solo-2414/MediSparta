@@ -24,7 +24,7 @@ class AuthManager {
         this.roleSelect.dispatchEvent(new Event('change'));
         this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
     }
-    // sets the username label and placeholder based on the selected role, and also clears any previous input for security and clarity. It also changes the input type to "number" for students and staff to encourage correct input format, while keeping it as "text" for admins who may have alphanumeric usernames. 
+    
     updateLabels(role) {
         this.usernameInput.value = '';
         const passwordInput = document.getElementById('password');
@@ -32,15 +32,15 @@ class AuthManager {
 
         if (role === 'admin') {
             this.usernameLabel.textContent = 'Admin Username:';
-            this.usernameInput.placeholder = 'Enter your username';
+            this.usernameInput.placeholder = 'Enter username';
             this.usernameInput.type = 'text'; 
         } else if (role === 'student') {
             this.usernameLabel.textContent = 'Student ID Number:';
-            this.usernameInput.placeholder = 'e.g., 241001';
+            this.usernameInput.placeholder = 'Enter student ID (e.g., 241001)';
             this.usernameInput.type = 'number'; 
         } else if (role === 'staff') {
             this.usernameLabel.textContent = 'Staff ID Number:';
-            this.usernameInput.placeholder = 'e.g., 1001';
+            this.usernameInput.placeholder = 'Enter staff ID (e.g., 1001)';
             this.usernameInput.type = 'number'; 
         }
     }
@@ -71,7 +71,8 @@ class AuthManager {
         const password = document.getElementById('password').value;
 
         try {
-            const response = await fetch('http://localhost:3000/login', {
+            // URL UPDATED FOR DEPLOYMENT
+            const response = await fetch('/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ role, username, password })
@@ -139,7 +140,9 @@ class ClinicManager {
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/staff/search-students?q=${encodeURIComponent(query)}`);
+                // NEW: Attach staffId to securely filter by campus!
+                const myStaffId = sessionStorage.getItem('userId');
+                const response = await fetch(`/api/staff/search-students?q=${encodeURIComponent(query)}&staffId=${myStaffId}`);
                 const result = await response.json();
 
                 this.visitSearchDropdown.innerHTML = '';
@@ -189,18 +192,15 @@ class ClinicManager {
     initVisitLog() {
         this.visitForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // --- NEW: THE BOUNCER ---
             const rawStudentInput = document.getElementById('student_id').value.trim();
             
-            // Check if the input contains ONLY numbers using a Regular Expression
             if (!/^\d+$/.test(rawStudentInput)) {
                 window.showToast('Please select a valid student from the dropdown first!', 'error');
-                return; // Stop the code here. Do not contact the server!
+                return; 
             }
-            // ------------------------
 
             const visitData = {
-                student_id: rawStudentInput, // Use the clean variable we just made
+                student_id: rawStudentInput, 
                 staff_id: sessionStorage.getItem('userId'), 
                 symptoms: document.getElementById('symptoms').value,
                 inventory_id: document.getElementById('inventory_id').value || null,
@@ -208,7 +208,7 @@ class ClinicManager {
             };
 
             try {
-                const response = await fetch('http://localhost:3000/log-visit', {
+                const response = await fetch('/log-visit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(visitData)
@@ -216,7 +216,7 @@ class ClinicManager {
                 const result = await response.json();
 
                 if (response.ok && result.success) {
-                    window.showToast('Visit logged and saved successfully!', 'success'); // <--- REPLACED ALERT
+                    window.showToast('Visit logged and saved successfully!', 'success'); 
                     this.visitForm.reset();
                     window.closeModal('visitModal');
                     
@@ -224,17 +224,19 @@ class ClinicManager {
                         this.loadRecentActivity();
                     }
                 } else {
-                    window.showToast(result.error, 'error'); // <--- REPLACED ALERT
+                    window.showToast(result.error, 'error'); 
                 }
             } catch (error) {
-                window.showToast('Cannot connect to the server.', 'error'); // <--- REPLACED ALERT
+                window.showToast('Cannot connect to the server.', 'error'); 
             }
         });
     }
 
     async loadInventory() {
         try {
-            const response = await fetch('http://localhost:3000/api/inventory');
+            // NEW: Securely fetch inventory locked to this staff's campus
+            const myStaffId = sessionStorage.getItem('userId');
+            const response = await fetch(`/api/inventory?staffId=${myStaffId}`); 
             const result = await response.json();
 
             if (response.ok && result.success) {
@@ -243,8 +245,8 @@ class ClinicManager {
                 const visitDropdown = document.getElementById('inventory_id');
                 const restockDropdown = document.getElementById('restock_item');
                 
-                if (visitDropdown) visitDropdown.innerHTML = '<option value="">-- No medication dispensed --</option>';
-                if (restockDropdown) restockDropdown.innerHTML = '';
+                if (visitDropdown) visitDropdown.innerHTML = '<option value="" disabled selected hidden>-- No medication dispensed --</option>';
+                if (restockDropdown) restockDropdown.innerHTML = '<option value="" disabled selected hidden>-- Select an item to restock --</option>';
 
                 result.data.forEach(item => {
                     const optionHtml = `<option value="${item.inventory_id}">${item.item_name}</option>`;
@@ -283,7 +285,7 @@ class ClinicManager {
         if (!tbody) return;
 
         try {
-            const response = await fetch('http://localhost:3000/api/staff/recent-visits');
+            const response = await fetch('/api/staff/recent-visits');
             const result = await response.json();
 
             tbody.innerHTML = '';
@@ -317,7 +319,7 @@ class ClinicManager {
             };
 
             try {
-                const response = await fetch('http://localhost:3000/api/inventory/update', {
+                const response = await fetch('/api/inventory/update', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -326,13 +328,13 @@ class ClinicManager {
 
                 if (response.ok && result.success) {
                     this.restockForm.reset();
-                    window.showToast('Stock updated successfully!', 'success'); // <--- REPLACED ALERT
+                    window.showToast('Stock updated successfully!', 'success'); 
                     this.loadInventory(); 
                 } else {
-                    window.showToast(result.error, 'error'); // <--- REPLACED ALERT
+                    window.showToast(result.error, 'error'); 
                 }
             } catch (error) {
-                window.showToast('Server error updating stock.', 'error'); // <--- REPLACED ALERT
+                window.showToast('Server error updating stock.', 'error'); 
             }
         });
     }
@@ -341,13 +343,15 @@ class ClinicManager {
         this.addItemForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            // NEW: Send the staff_id so the backend knows which campus to assign this medicine to!
             const payload = {
                 item_name: document.getElementById('new_item_name').value,
-                quantity: document.getElementById('new_item_qty').value
+                quantity: document.getElementById('new_item_qty').value,
+                staff_id: sessionStorage.getItem('userId')
             };
 
             try {
-                const response = await fetch('http://localhost:3000/api/inventory/add', {
+                const response = await fetch('/api/inventory/add', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -356,13 +360,13 @@ class ClinicManager {
 
                 if (response.ok && result.success) {
                     this.addItemForm.reset();
-                    window.showToast('New medicine added to inventory!', 'success'); // <--- REPLACED ALERT
+                    window.showToast('New medicine added to inventory!', 'success'); 
                     this.loadInventory(); 
                 } else {
-                    window.showToast(result.error, 'error'); // <--- REPLACED ALERT
+                    window.showToast(result.error, 'error'); 
                 }
             } catch (error) {
-                window.showToast('Server error adding new item.', 'error'); // <--- REPLACED ALERT
+                window.showToast('Server error adding new item.', 'error'); 
             }
         });
     }
@@ -400,7 +404,9 @@ class PatientRecordsManager {
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/staff/search-students?q=${encodeURIComponent(query)}`);
+                // NEW: Attach staffId to securely filter by campus!
+                const myStaffId = sessionStorage.getItem('userId');
+                const response = await fetch(`/api/staff/search-students?q=${encodeURIComponent(query)}&staffId=${myStaffId}`);
                 const result = await response.json();
 
                 this.searchDropdown.innerHTML = '';
@@ -478,7 +484,7 @@ class PatientRecordsManager {
         }
 
         try {
-            const response = await fetch(`http://localhost:3000/api/student-records/${studentId}`);
+            const response = await fetch(`/api/student-records/${studentId}`);
             const result = await response.json();
 
             if (response.ok && result.success) {
@@ -626,7 +632,7 @@ class AdminManager {
         const form = isStudent ? this.formAddStudent : this.formAddStaff;
 
         try {
-            const response = await fetch(`http://localhost:3000/api/${endpoint}`, {
+            const response = await fetch(`/api/${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -634,14 +640,13 @@ class AdminManager {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                // <--- REPLACED ALERT WITH TOAST
                 window.showToast(`SUCCESS!\nThe ${type} has been registered.\nOfficial Login ID: ${result.newId}`, 'success'); 
                 form.reset();
             } else {
-                window.showToast(result.error, 'error'); // <--- REPLACED ALERT
+                window.showToast(result.error, 'error'); 
             }
         } catch (error) {
-            window.showToast('Server error.', 'error'); // <--- REPLACED ALERT
+            window.showToast('Server error.', 'error'); 
         }
     }
 
@@ -655,7 +660,7 @@ class AdminManager {
         const studentTable = document.getElementById('adminStudentTable');
 
         try {
-            const staffRes = await fetch('http://localhost:3000/api/admin/staff');
+            const staffRes = await fetch('/api/admin/staff');
             const staffData = await staffRes.json();
             
             staffTable.innerHTML = '';
@@ -670,7 +675,7 @@ class AdminManager {
                 });
             }
 
-            const studentRes = await fetch('http://localhost:3000/api/admin/students');
+            const studentRes = await fetch('/api/admin/students');
             const studentData = await studentRes.json();
             
             studentTable.innerHTML = '';
@@ -693,7 +698,7 @@ class AdminManager {
         const canvas = document.getElementById('adminChart');
         
         try {
-            const response = await fetch(`http://localhost:3000/api/admin/chart-data?range=${encodeURIComponent(range)}`);
+            const response = await fetch(`/api/admin/chart-data?range=${encodeURIComponent(range)}`);
             const result = await response.json();
 
             if (response.ok && result.success) {
@@ -735,17 +740,15 @@ class AdminManager {
 }
 
 // ==========================================
-// 5. GLOBAL TOAST NOTIFICATION ENGINE (NEW!)
+// 5. GLOBAL TOAST NOTIFICATION ENGINE
 // ==========================================
 window.showToast = function(message, type = 'error') {
-    // Remove existing toast so they don't pile up
     const existing = document.getElementById('global-toast');
     if (existing) existing.remove();
 
     const toast = document.createElement('div');
     toast.id = 'global-toast';
     
-    // Style dynamically based on Success vs Error
     const isSuccess = type === 'success';
     const bgColor = 'var(--card-bg)'; 
     const textColor = isSuccess ? '#27ae60' : 'var(--bsu-red)';
@@ -767,7 +770,7 @@ window.showToast = function(message, type = 'error') {
         font-weight: 600;
         font-size: 1rem;
         opacity: 0;
-        white-space: pre-wrap; /* Allows line breaks like \n to format properly */
+        white-space: pre-wrap; 
         text-align: center;
         transition: all 0.3s ease;
         pointer-events: none;
@@ -776,13 +779,11 @@ window.showToast = function(message, type = 'error') {
     toast.textContent = icon + message;
     document.body.appendChild(toast);
 
-    // Slide it in!
     setTimeout(() => {
         toast.style.opacity = '1';
         toast.style.transform = 'translateX(-50%) translateY(0)';
     }, 10);
 
-    // Fade it out after 4 seconds
     setTimeout(() => {
         toast.style.opacity = '0';
         toast.style.transform = 'translateX(-50%) translateY(-20px)';

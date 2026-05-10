@@ -50,7 +50,7 @@
             <div class="card">
                 <h3>User Directory</h3>
                 <p>View a master list of all registered accounts.</p>
-                <button class="btn-primary" onclick="openAdminModal('directory')">View Directory</button>
+                <button class="btn-primary" onclick="loadUserDirectory()">View Directory</button>
             </div>
         </div>
 
@@ -69,17 +69,17 @@
                 <h3 style="color: var(--bsu-red); border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 15px;">Information Details:</h3>
                 <form id="form-add-student">
                     <label>First Name:</label>
-                    <input type="text" id="stu_first" required>
+                    <input type="text" id="stu_first" placeholder="Enter first name" required>
                     
                     <label>Last Name:</label>
-                    <input type="text" id="stu_last" required>
+                    <input type="text" id="stu_last" placeholder="Enter last name" required>
                     
                     <label>Date of Birth:</label>
                     <input type="date" id="stu_dob" required style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
                     
                     <label>Campus:</label>
                     <select id="stu_campus" required>
-                        <option value="" disabled selected>-- Select campus --</option>
+                        <option value="" disabled selected hidden>-- Select campus --</option>
                         <option value="1">Pablo Borbon</option>
                         <option value="2">Alangilan</option>
                         <option value="3">Balayan</option>
@@ -102,14 +102,14 @@
                 <h3 style="color: var(--bsu-red); border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 15px;">Information Details:</h3>
                 <form id="form-add-staff">
                     <label>First Name:</label>
-                    <input type="text" id="stf_first" required>
+                    <input type="text" id="stf_first" placeholder="Enter first name" required>
                     
                     <label>Last Name:</label>
-                    <input type="text" id="stf_last" required>
+                    <input type="text" id="stf_last" placeholder="Enter last name" required>
                     
                     <label>Job Title:</label>
                     <select id="stf_title" required>
-                        <option value="" disabled selected>-- Select job title --</option>
+                        <option value="" disabled selected hidden>-- Select job title --</option>
                         <option value="Nurse">Nurse</option>
                         <option value="Head Nurse">Head Nurse</option>
                         <option value="Clinic Physician">Clinic Physician</option>
@@ -117,7 +117,7 @@
                     
                     <label>Assigned Campus:</label>
                     <select id="stf_campus" required>
-                        <option value="" disabled selected>-- Select campus --</option>
+                        <option value="" disabled selected hidden>-- Select campus --</option>
                         <option value="1">Pablo Borbon</option>
                         <option value="2">Alangilan</option>
                         <option value="3">Balayan</option>

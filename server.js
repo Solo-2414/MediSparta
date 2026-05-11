@@ -56,6 +56,17 @@ app.post('/login', (req, res) => {
 
         if (results.length > 0) {
             const user = results[0]; 
+
+            // --- NEW: THE BOUNCER CHECK ---
+            // Admins don't have an is_active column, so we only check students and staff
+            if (role !== 'admin' && user.is_active === 0) {
+                return res.status(403).json({ 
+                    success: false, 
+                    error: 'Access Denied: Your account has been deactivated. Please contact the administrator.' 
+                });
+            }
+            // -----------------------------
+
             const displayName = (role === 'admin') ? user.full_name : user.first_name;
             
             // Grab the exact ID so the frontend can remember WHO logged in
@@ -68,7 +79,7 @@ app.post('/login', (req, res) => {
                 success: true, 
                 message: `Welcome back, ${displayName}!`,
                 role: role,
-                userId: userId // <-- Sending ID back for the wristband
+                userId: userId 
             });
         } else {
             res.status(401).json({ success: false, error: 'Invalid username or password.' });
@@ -239,7 +250,8 @@ app.post('/api/register-staff', (req, res) => {
 
 // --- ROUTE: Admin View All Staff ---
 app.get('/api/admin/staff', (req, res) => {
-    db.query(`SELECT staff_id, first_name, last_name, job_title, campus_id FROM staff`, (err, results) => {
+    // NEW: Added is_active to the SELECT list
+    db.query(`SELECT staff_id, first_name, last_name, job_title, campus_id, is_active FROM staff`, (err, results) => {
         if (err) return res.status(500).json({ error: 'Database error.' });
         res.status(200).json({ success: true, data: results });
     });
@@ -247,7 +259,8 @@ app.get('/api/admin/staff', (req, res) => {
 
 // --- ROUTE: Admin View All Students ---
 app.get('/api/admin/students', (req, res) => {
-    db.query(`SELECT student_id, first_name, last_name, date_of_birth, campus_id FROM students`, (err, results) => {
+    // NEW: Added is_active to the SELECT list
+    db.query(`SELECT student_id, first_name, last_name, date_of_birth, campus_id, is_active FROM students`, (err, results) => {
         if (err) return res.status(500).json({ error: 'Database error.' });
         res.status(200).json({ success: true, data: results });
     });
@@ -446,6 +459,168 @@ app.get('/api/staff/search-students', (req, res) => {
 
     db.query(sql, [staffId, searchTerm, searchTerm, searchTerm], (err, results) => {
         if (err) return res.status(500).json({ error: 'Database error during search.' });
+        res.status(200).json({ success: true, data: results });
+    });
+});
+
+// ==========================================
+// PHASE 1: ADMIN DASHBOARD ANALYTICS ROUTES
+// ==========================================
+
+// --- ROUTE: Fetch High-Level Dashboard Stats ---
+app.get('/api/admin/dashboard-stats', (req, res) => {
+    // We run 3 parallel queries to gather all the stats at once
+    const queries = {
+        students: `SELECT COUNT(*) as count FROM students`,
+        staff: `SELECT COUNT(*) as count FROM staff`,
+        campuses: `SELECT COUNT(DISTINCT campus_id) as count FROM students`
+    };
+
+    db.query(queries.students, (err, studentRes) => {
+        if (err) return res.status(500).json({ error: 'Database error.' });
+        db.query(queries.staff, (err, staffRes) => {
+            if (err) return res.status(500).json({ error: 'Database error.' });
+            db.query(queries.campuses, (err, campusRes) => {
+                if (err) return res.status(500).json({ error: 'Database error.' });
+                
+                res.status(200).json({
+                    success: true,
+                    totals: {
+                        students: studentRes[0].count,
+                        staff: staffRes[0].count,
+                        campuses: campusRes[0].count
+                    }
+                });
+            });
+        });
+    });
+});
+
+// --- ROUTE: Fetch System-Wide Recent Activity ---
+app.get('/api/admin/recent-activity', (req, res) => {
+    // Pulls the latest 6 visits from ANY campus
+    const sql = `
+        SELECT v.visit_date, s.first_name, s.last_name, v.symptoms, v.campus_id
+        FROM visits v
+        JOIN students s ON v.student_id = s.student_id
+        ORDER BY v.visit_date DESC
+        LIMIT 6
+    `;
+    
+    db.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: 'Database error fetching recent visits.' });
+        res.status(200).json({ success: true, data: results });
+    });
+});
+
+// ==========================================
+// PHASE 3: ACCOUNTS & ACCESS ROUTES
+// ==========================================
+
+// --- ROUTE: Toggle User Status (Deactivate/Reactivate) ---
+app.post('/api/admin/toggle-status', (req, res) => {
+    const { id, type, currentStatus, adminId } = req.body; // NEW: Grabbing the adminId
+    const newStatus = currentStatus ? 0 : 1; // Flip the boolean
+    
+    const table = type === 'student' ? 'students' : 'staff';
+    const idColumn = type === 'student' ? 'student_id' : 'staff_id';
+
+    const sql = `UPDATE ${table} SET is_active = ? WHERE ${idColumn} = ?`;
+    
+    db.query(sql, [newStatus, id], (err) => {
+        if (err) return res.status(500).json({ error: 'Database error updating status.' });
+        
+        // NEW: Fire the Audit Log!
+        const actionStr = `${newStatus ? 'Activated' : 'Deactivated'} ${type} account (ID: ${id})`;
+        logAudit(adminId, 'admin', actionStr);
+
+        res.status(200).json({ success: true, message: `Account ${newStatus ? 'Activated' : 'Deactivated'} successfully!` });
+    });
+});
+
+// --- ROUTE: Strict Hard Delete ---
+app.post('/api/admin/delete-user', (req, res) => {
+    const { id, type, adminId } = req.body; // NEW: Grabbing the adminId
+    
+    const checkSql = `SELECT COUNT(*) as visitCount FROM visits WHERE ${type === 'student' ? 'student_id' : 'staff_id'} = ?`;
+    
+    db.query(checkSql, [id], (err, results) => {
+        if (err) return res.status(500).json({ error: 'Database error checking records.' });
+        
+        if (results[0].visitCount > 0) {
+            return res.status(403).json({ 
+                error: `Cannot delete: This ${type} has ${results[0].visitCount} medical records tied to their account. Please deactivate them instead.` 
+            });
+        }
+
+        const table = type === 'student' ? 'students' : 'staff';
+        const idColumn = type === 'student' ? 'student_id' : 'staff_id';
+        const deleteSql = `DELETE FROM ${table} WHERE ${idColumn} = ?`;
+
+        db.query(deleteSql, [id], (err) => {
+            if (err) return res.status(500).json({ error: 'Database error deleting account.' });
+            
+            // NEW: Fire the Audit Log!
+            logAudit(adminId, 'admin', `Permanently deleted ${type} account (ID: ${id})`);
+
+            res.status(200).json({ success: true, message: 'Account permanently deleted.' });
+        });
+    });
+});
+
+// ==========================================
+// PHASE 4: AUDIT & BROADCAST ROUTES
+// ==========================================
+
+// Helper function to write to audit log (You can call this from any other route!)
+function logAudit(userId, role, action) {
+    db.query(`INSERT INTO audit_logs (user_id, role, action) VALUES (?, ?, ?)`, [userId, role, action]);
+}
+
+// Route: Get Audit Logs
+app.get('/api/admin/audit-logs', (req, res) => {
+    db.query(`SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 100`, (err, results) => {
+        if (err) return res.status(500).json({ error: 'Failed to fetch logs.' });
+        res.status(200).json({ success: true, data: results });
+    });
+});
+
+// Route: Publish a Broadcast
+app.post('/api/admin/broadcast', (req, res) => {
+    const { message, adminId } = req.body;
+    
+    // First, deactivate all old broadcasts
+    db.query(`UPDATE broadcasts SET is_active = FALSE`, (err) => {
+        if (err) return res.status(500).json({ error: 'Database error.' });
+        
+        // If a message was provided, insert it as the new active broadcast
+        if (message) {
+            db.query(`INSERT INTO broadcasts (message, is_active) VALUES (?, TRUE)`, [message], (err) => {
+                if (err) return res.status(500).json({ error: 'Database error.' });
+                logAudit(adminId, 'admin', `Published broadcast: "${message}"`);
+                res.status(200).json({ success: true, message: 'Broadcast pushed live!' });
+            });
+        } else {
+            logAudit(adminId, 'admin', `Cleared active broadcast`);
+            res.status(200).json({ success: true, message: 'Broadcast cleared.' });
+        }
+    });
+});
+
+// Route: Check for active broadcast (Every user polls this)
+app.get('/api/system/active-broadcast', (req, res) => {
+    db.query(`SELECT message FROM broadcasts WHERE is_active = TRUE ORDER BY created_at DESC LIMIT 1`, (err, results) => {
+        if (err || results.length === 0) return res.status(200).json({ success: true, message: null });
+        res.status(200).json({ success: true, message: results[0].message });
+    });
+});
+
+// --- ROUTE: Fetch All Campuses Dynamically ---
+app.get('/api/campuses', (req, res) => {
+    // Note: Assuming your columns are named 'campus_id' and 'campus_name'. 
+    // Change 'campus_name' if your column is named something else!
+    db.query(`SELECT campus_id, campus_name FROM campuses ORDER BY campus_id ASC`, (err, results) => {
+        if (err) return res.status(500).json({ error: 'Database error fetching campuses.' });
         res.status(200).json({ success: true, data: results });
     });
 });

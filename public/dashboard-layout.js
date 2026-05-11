@@ -92,6 +92,60 @@ document.getElementById('nav-home').addEventListener('click', (e) => {
     else window.location.href = 'index.html';
 });
 
+// --- NEW: DYNAMIC ADMIN SIDEBAR LINKS ---
+// We check if the user is an admin AND if they are actually on the admin page
+if (sessionStorage.getItem('userRole') === 'admin' && window.location.pathname.includes('admin.html')) {
+    const sidebarLinks = document.querySelector('.sidebar-links');
+    
+    // Inject the new menu items into the existing <ul>
+    sidebarLinks.insertAdjacentHTML('beforeend', `
+        <li><a href="#" id="nav-students">🎓 Manage Students</a></li>
+        <li><a href="#" id="nav-staff">👨‍⚕️ Manage Staff</a></li>
+        <li><a href="#" id="nav-audit">🛡️ Audit Logs</a></li>        
+        <li><a href="#" id="nav-broadcast">📢 Broadcasts</a></li>      
+    `);
+
+    // Add click listeners to trigger the switchView function from script.js
+    // We also close the sidebar automatically on mobile for a better UX
+    document.getElementById('nav-home').addEventListener('click', () => {
+        window.adminApp.switchView('dashboard-view');
+        sidebar.classList.remove('active');
+        document.body.classList.remove('sidebar-open');
+    });
+    
+    document.getElementById('nav-students').addEventListener('click', (e) => {
+        e.preventDefault();
+        window.adminApp.switchView('students-view');
+        sidebar.classList.remove('active');
+        document.body.classList.remove('sidebar-open');
+    });
+
+    document.getElementById('nav-staff').addEventListener('click', (e) => {
+        e.preventDefault();
+        window.adminApp.switchView('staff-view');
+        sidebar.classList.remove('active');
+        document.body.classList.remove('sidebar-open');
+    });
+
+    // ... your existing nav-students and nav-staff click listeners are here ...
+
+    // --- NEW: AUDIT & BROADCAST CLICK LISTENERS ---
+    document.getElementById('nav-audit').addEventListener('click', (e) => {
+        e.preventDefault();
+        window.adminApp.switchView('audit-view');
+        sidebar.classList.remove('active');
+        document.body.classList.remove('sidebar-open');
+    });
+
+    document.getElementById('nav-broadcast').addEventListener('click', (e) => {
+        e.preventDefault();
+        window.adminApp.switchView('broadcast-view');
+        sidebar.classList.remove('active');
+        document.body.classList.remove('sidebar-open');
+    });
+}
+// ----------------------------------------
+
 // B. Dark Mode Logic
 const themeToggleBtn = document.getElementById('theme-toggle');
 const currentTheme = localStorage.getItem('theme');

@@ -31,6 +31,8 @@ db.connect((err) => {
     }
 });
 
+
+
 // --- ROUTE: User Login Validation ---
 app.post('/login', (req, res) => {
     const { role, username, password } = req.body;
@@ -250,8 +252,13 @@ app.post('/api/register-staff', (req, res) => {
 
 // --- ROUTE: Admin View All Staff ---
 app.get('/api/admin/staff', (req, res) => {
-    // NEW: Added is_active to the SELECT list
-    db.query(`SELECT staff_id, first_name, last_name, job_title, campus_id, is_active FROM staff`, (err, results) => {
+    // UPDATED: Added a LEFT JOIN to grab the actual campus_name
+    const sql = `
+        SELECT s.staff_id, s.first_name, s.last_name, s.job_title, s.is_active, c.campus_name 
+        FROM staff s
+        LEFT JOIN campuses c ON s.campus_id = c.campus_id
+    `;
+    db.query(sql, (err, results) => {
         if (err) return res.status(500).json({ error: 'Database error.' });
         res.status(200).json({ success: true, data: results });
     });
@@ -259,8 +266,27 @@ app.get('/api/admin/staff', (req, res) => {
 
 // --- ROUTE: Admin View All Students ---
 app.get('/api/admin/students', (req, res) => {
-    // NEW: Added is_active to the SELECT list
-    db.query(`SELECT student_id, first_name, last_name, date_of_birth, campus_id, is_active FROM students`, (err, results) => {
+    // UPDATED: Added a LEFT JOIN to grab the actual campus_name
+    const sql = `
+        SELECT s.student_id, s.first_name, s.last_name, s.date_of_birth, s.is_active, c.campus_name 
+        FROM students s
+        LEFT JOIN campuses c ON s.campus_id = c.campus_id
+    `;
+    db.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: 'Database error.' });
+        res.status(200).json({ success: true, data: results });
+    });
+});
+
+// --- ROUTE: Admin View All Students ---
+app.get('/api/admin/students', (req, res) => {
+    // UPDATED: Added a LEFT JOIN to grab the actual campus_name
+    const sql = `
+        SELECT s.student_id, s.first_name, s.last_name, s.date_of_birth, s.is_active, c.campus_name 
+        FROM students s
+        LEFT JOIN campuses c ON s.campus_id = c.campus_id
+    `;
+    db.query(sql, (err, results) => {
         if (err) return res.status(500).json({ error: 'Database error.' });
         res.status(200).json({ success: true, data: results });
     });
@@ -498,11 +524,12 @@ app.get('/api/admin/dashboard-stats', (req, res) => {
 
 // --- ROUTE: Fetch System-Wide Recent Activity ---
 app.get('/api/admin/recent-activity', (req, res) => {
-    // Pulls the latest 6 visits from ANY campus
+    // NEW: We added a LEFT JOIN to the campuses table to grab campus_name!
     const sql = `
-        SELECT v.visit_date, s.first_name, s.last_name, v.symptoms, v.campus_id
+        SELECT v.visit_date, s.first_name, s.last_name, v.symptoms, c.campus_name
         FROM visits v
         JOIN students s ON v.student_id = s.student_id
+        LEFT JOIN campuses c ON v.campus_id = c.campus_id
         ORDER BY v.visit_date DESC
         LIMIT 6
     `;

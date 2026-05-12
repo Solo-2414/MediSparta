@@ -583,11 +583,17 @@ class AdminManager {
         this.loadCampuses();
     }
 
-    // --- RESTORED: CHART LOGIC ---
+    // --- UPDATED: CHART LOGIC (Fixed Button Highlights) ---
     setOverviewRange(range) {
         this.currentOverviewRange = range;
+        
+        // Target the buttons and manually update their inline styles
         document.querySelectorAll('.overview-range-btn').forEach(button => {
-            button.classList.toggle('active', button.dataset.overviewRange === range);
+            const isActive = button.dataset.overviewRange === range;
+            
+            button.style.background = isActive ? 'var(--bsu-red)' : 'white';
+            button.style.color = isActive ? 'white' : '#333';
+            button.style.borderColor = isActive ? 'var(--bsu-red)' : '#ccc';
         });
 
         const statusMap = {
@@ -745,7 +751,7 @@ class AdminManager {
                     <td style="padding: 12px; font-weight: bold; color: var(--bsu-red);">${id} <br>${statusBadge}</td>
                     <td style="padding: 12px; font-weight: 500;">${user.first_name} ${user.last_name}</td>
                     <td style="padding: 12px; color: #666;">${thirdCol}</td>
-                    <td style="padding: 12px;">Campus ${user.campus_id}</td>
+                    <td style="padding: 12px; font-weight: 500;">${user.campus_name || 'Unassigned'}</td>
                     <td style="padding: 12px; display: flex; gap: 8px;">
                         <button onclick="window.adminApp.toggleUserStatus('${id}', '${type}', ${isActive})" style="padding: 4px 8px; background: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
                             ${isActive ? 'Deactivate' : 'Activate'}
@@ -859,12 +865,13 @@ class AdminManager {
             if (activityData.success && activityData.data.length > 0) {
                 activityData.data.forEach(visit => {
                     const time = new Date(visit.visit_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    // Replace the old row layout with this updated one!
                     const row = `
                         <tr style="border-bottom: 1px solid #eee;">
                             <td style="padding: 10px; font-weight: bold; color: var(--bsu-red);">${time}</td>
                             <td style="padding: 10px; font-weight: 600;">${visit.first_name} ${visit.last_name}</td>
                             <td style="padding: 10px; color: #666;">${visit.symptoms}</td>
-                            <td style="padding: 10px; font-weight: bold;">${visit.campus_id || 'Unknown'}</td>
+                            <td style="padding: 10px; font-weight: bold;">${visit.campus_name || 'Unknown'}</td>
                         </tr>
                     `;
                     tbody.insertAdjacentHTML('beforeend', row);
